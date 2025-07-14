@@ -291,6 +291,10 @@ def process_resume(resume_file, job_description, input_prompt):
 
 @app.route("/")
 def matchresume():
+    return render_template('main.html')
+
+@app.route("/matchresume")
+def matchr():
     return render_template('home.html')
 
 @app.route('/matcher', methods=['POST'])
