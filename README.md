@@ -2,9 +2,9 @@
 this project is in progress
 the development phase(with react and next js) of this project being going on this repositary : https://github.com/punitkumar4871/Resume_interview_matcher
 
-Resume ATS Scoring and Interview System
-Overview
-This project consists of two main components:
+# Resume ATS Scoring and Interview System
+### Overview
+`This project consists of two main components:`
 
 Resume ATS Scoring System: Analyzes resumes and matches them to job descriptions using NLP techniques to calculate an Applicant Tracking System (ATS) score. It extracts keywords from job descriptions using SpaCy and provides tailored recommendations to improve resume alignment with job requirements using the Gemini API.
 AI-Powered Interview System: Parses resumes using GenAI to identify key sections (e.g., projects, skills, experience), generates relevant interview questions, allows users to submit answers, evaluates responses, and provides a performance score.
