@@ -571,6 +571,14 @@
             font-size: 0.875rem;
         }
 
+        .foot-container {
+            height:100px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 120px 2rem 60px;
+            position: relative;
+            z-index: 2;
+        }
         /* Responsive Design */
         @media (max-width: 768px) {
             .nav-links {
