@@ -13,9 +13,10 @@
   <img src="https://img.shields.io/badge/-Flask-3776AB?logo=flask&logoColor=white" alt="Flask"/>
   <img src="https://img.shields.io/badge/-SpaCy-green?logo=spaCy" alt="SpaCy"/>
   <img src="https://img.shields.io/badge/-Gemini_API-black?logo=google" alt="Gemini API"/>
-  <img src="https://img.shields.io/badge/-GenAI-purple?logo=CSS" alt="CSS"/>
+  <img src="https://img.shields.io/badge/-CSS-purple?logo=CSS" alt="CSS"/>
   <img src="https://img.shields.io/badge/-JavaScript-000000?logo=javascript" alt="JavaScript"/>
   <img src="https://img.shields.io/badge/-HTML-61DAFB?logo=html&logoColor=black" alt="HTML"/>
+  <img src="https://img.shields.io/badge/-Firebase-61DAFB?logo=firebase&logoColor=black" alt="Firebase"/>
 </p>
 
 ---
