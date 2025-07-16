@@ -10,12 +10,12 @@
 <h3 align="center"><i>Built with the tools and technologies:</i></h3>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white" alt="Flask"/>
+  <img src="https://img.shields.io/badge/-Flask-3776AB?logo=python&logoColor=white" alt="Flask"/>
   <img src="https://img.shields.io/badge/-SpaCy-green?logo=spaCy" alt="SpaCy"/>
   <img src="https://img.shields.io/badge/-Gemini_API-black?logo=google" alt="Gemini API"/>
   <img src="https://img.shields.io/badge/-GenAI-purple?logo=openai" alt="GenAI"/>
-  <img src="https://img.shields.io/badge/-Next.js-000000?logo=nextdotjs" alt="JavaScript"/>
-  <img src="https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=black" alt="HTML/CSS"/>
+  <img src="https://img.shields.io/badge/-JavaScript-000000?logo=nextdotjs" alt="JavaScript"/>
+  <img src="https://img.shields.io/badge/-HTML-61DAFB?logo=react&logoColor=black" alt="HTML/CSS"/>
 </p>
 
 ---
