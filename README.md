@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/-CSS-purple?logo=CSS" alt="CSS"/>
   <img src="https://img.shields.io/badge/-JavaScript-000000?logo=javascript" alt="JavaScript"/>
   <img src="https://img.shields.io/badge/-HTML-61DAFB?logo=html&logoColor=black" alt="HTML"/>
-  <img src="https://img.shields.io/badge/-Firebase-61DAFB?logo=firebase&logoColor=black" alt="Firebase"/>
+  <img src="https://img.shields.io/badge/-Firebase-61RAFB?logo=firebase&logoColor=black" alt="Firebase"/>
 </p>
 
 ---
