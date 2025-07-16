@@ -1,13 +1,9 @@
-Here’s your `JobSyncPro` project description rewritten in the format you provided (with badges, headers, technologies, and styled sections like in `ChatMark`):
-
----
-
 <h1 align="center">🤖 JobSyncPro</h1>
 <p align="center"><i>Optimize Resumes, Simulate Interviews — Your AI-Powered Career Assistant</i></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-in--progress-yellow" alt="Project Status Badge"/>
-  <img src="https://img.shields.io/badge/tech-stack-React%20%7C%20Next.js%20%7C%20Python-blue" alt="Tech Stack Badge"/>
+<!--   <img src="https://img.shields.io/badge/tech-stack-React%20%7C%20Next.js%20%7C%20Python-blue" alt="Tech Stack Badge"/> -->
   <img src="https://img.shields.io/badge/API-Gemini%20%7C%20GenAI-lightgrey" alt="API Badge"/>
 </p>
 
@@ -129,6 +125,3 @@ The frontend development using **React** and **Next.js** is ongoing at:
 
 Stay tuned for exciting updates!
 
----
-
-Let me know if you want to embed badges, progress gifs, demo screenshots, or a live preview link when it’s ready!
