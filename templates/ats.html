@@ -83,11 +83,11 @@
             font-size: 0.9em;
         }
         .soft-skills-label {
-            background-color: #dbeaff;
+            background-color: #dbeaff; /* Lighter blue for soft skills */
             color: #34495e;
         }
         .tech-skills-label {
-            background-color: #ffe6db;
+            background-color: #ffe6db; /* Lighter orange for technical skills */
             color: #34495e;
         }
         .missing-keywords-section {
@@ -95,22 +95,26 @@
             background-color: #fcf3f3;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #e74c3c;
+            border-left: 4px solid #e74c3c; /* Red border for missing */
         }
         .missing-keywords-list li {
-            background-color: #f7e1e1;
+            background-color: #f7e1e1; /* Lighter red */
             color: #c0392b;
             font-weight: bold;
+            margin-bottom: 5px; /* Add some space between items */
+            display: block; /* Make them block to take full width */
+            padding: 8px 12px; /* Consistent padding */
+            border-radius: 5px; /* Consistent border radius */
         }
         .recommendations-section {
             margin-top: 20px;
             background-color: #f2f7fb;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid #3498db; /* Blue border for recommendations */
         }
         .recommendations-list li {
-            background-color: #e0f2f7;
+            background-color: #e0f2f7; /* Lighter blue */
             color: #2c3e50;
             margin-bottom: 8px;
         }
@@ -154,7 +158,7 @@
                     </div>
 
                     <div class="skills-section">
-                        <h4>Technical Skills:</h4>
+                        <h4>Technical Skills Found:</h4>
                         {% if resume.skills %}
                             <ul class="skills-list">
                                 {% for skill in resume.skills %}
@@ -162,10 +166,10 @@
                                 {% endfor %}
                             </ul>
                         {% else %}
-                            <p>No technical skills identified.</p>
+                            <p>No technical skills were automatically identified by the parser.</p>
                         {% endif %}
 
-                        <h4>Soft Skills:</h4>
+                        <h4>Soft Skills Found:</h4>
                         {% if resume.soft_skills %}
                             <ul class="skills-list">
                                 {% for skill in resume.soft_skills %}
@@ -173,29 +177,29 @@
                                 {% endfor %}
                             </ul>
                         {% else %}
-                            <p>No soft skills identified.</p>
+                            <p>No soft skills were automatically identified by the parser.</p>
                         {% endif %}
                     </div>
 
                     <div class="missing-keywords-section">
-                        <h4>Missing Keywords:</h4>
+                        <h4>Missing Keywords (Identified by AI):</h4>
                         {% if resume.recommendation_data.missing_keywords %}
                             <ul class="missing-keywords-list">
                                 {% for keyword in resume.recommendation_data.missing_keywords %}
                                     <li>
-                                        <strong>{{ keyword.keyword }}</strong> 
-                                        {% if keyword.type %}(Type: {{ keyword.type }}){% endif %}
-                                        {% if keyword.importance %}(Importance: {{ keyword.importance }}){% endif %}
+                                        <strong>{{ keyword.keyword }}</strong>
+                                        {% if keyword.type %}(Type: {{ keyword.type | capitalize }}){% endif %}
+                                        {% if keyword.importance %}(Importance: {{ keyword.importance | capitalize }}){% endif %}
                                     </li>
                                 {% endfor %}
                             </ul>
                         {% else %}
-                            <p>No specific missing keywords identified by Gemini. Great job!</p>
+                            <p>No specific missing keywords identified by AI. Great job!</p>
                         {% endif %}
                     </div>
 
                     <div class="recommendations-section">
-                        <h4>Recommendations for Improvement:</h4>
+                        <h4>Recommendations for Improvement (from AI):</h4>
                         {% if resume.recommendation_data.recommendations %}
                             <ul class="recommendations-list">
                                 {% for recommendation_item in resume.recommendation_data.recommendations %}
@@ -203,13 +207,13 @@
                                 {% endfor %}
                             </ul>
                         {% else %}
-                            <p>No specific recommendations provided by Gemini.</p>
+                            <p>No further recommendations from AI. Your resume seems comprehensive!</p>
                         {% endif %}
                     </div>
                 </div>
             {% endfor %}
         {% else %}
-            <p>No matching resumes to display or an error occurred. Please try again.</p>
+            <p>No matching resumes to display or an error occurred during processing. Please try again.</p>
         {% endif %}
 
         <a href="/matchresume" class="back-button">Go Back</a>
