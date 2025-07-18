@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Match Results</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        .job-description-section {
+            background-color: #eaf2f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
+        }
+        .resume-card {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out;
+        }
+        .resume-card:hover {
+            transform: translateY(-5px);
+        }
+        .resume-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .resume-header h3 {
+            margin: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+            color: #2980b9;
+        }
+        .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #27ae60;
+            background-color: #e6ffee;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+        .skills-section {
+            margin-top: 15px;
+        }
+        .skills-list, .recommendations-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 5px;
+        }
+        .skills-list li, .recommendations-list li {
+            background-color: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin: 5px 0;
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 0.9em;
+        }
+        .soft-skills-label {
+            background-color: #dbeaff;
+            color: #34495e;
+        }
+        .tech-skills-label {
+            background-color: #ffe6db;
+            color: #34495e;
+        }
+        .missing-keywords-section {
+            margin-top: 20px;
+            background-color: #fcf3f3;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+        .missing-keywords-list li {
+            background-color: #f7e1e1;
+            color: #c0392b;
+            font-weight: bold;
+        }
+        .recommendations-section {
+            margin-top: 20px;
+            background-color: #f2f7fb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .recommendations-list li {
+            background-color: #e0f2f7;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 25px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ATS Match Results</h1>
+
+        <div class="job-description-section">
+            <h2>Job Description Provided:</h2>
+            <p>{{ job_description }}</p>
+        </div>
+
+        {% if top_resumes %}
+            <h2>Top Matching Resumes (Sorted by Score)</h2>
+            {% for resume in top_resumes %}
+                <div class="resume-card">
+                    <div class="resume-header">
+                        <h3>{{ resume.filename }}</h3>
+                        <span class="score">{{ resume.score }}%</span>
+                    </div>
+
+                    <div class="skills-section">
+                        <h4>Technical Skills:</h4>
+                        {% if resume.skills %}
+                            <ul class="skills-list">
+                                {% for skill in resume.skills %}
+                                    <li class="tech-skills-label">{{ skill }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No technical skills identified.</p>
+                        {% endif %}
+
+                        <h4>Soft Skills:</h4>
+                        {% if resume.soft_skills %}
+                            <ul class="skills-list">
+                                {% for skill in resume.soft_skills %}
+                                    <li class="soft-skills-label">{{ skill }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No soft skills identified.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="missing-keywords-section">
+                        <h4>Missing Keywords:</h4>
+                        {% if resume.recommendation_data.missing_keywords %}
+                            <ul class="missing-keywords-list">
+                                {% for keyword in resume.recommendation_data.missing_keywords %}
+                                    <li>
+                                        <strong>{{ keyword.keyword }}</strong> 
+                                        {% if keyword.type %}(Type: {{ keyword.type }}){% endif %}
+                                        {% if keyword.importance %}(Importance: {{ keyword.importance }}){% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No specific missing keywords identified by Gemini. Great job!</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="recommendations-section">
+                        <h4>Recommendations for Improvement:</h4>
+                        {% if resume.recommendation_data.recommendations %}
+                            <ul class="recommendations-list">
+                                {% for recommendation_item in resume.recommendation_data.recommendations %}
+                                    <li>{{ recommendation_item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No specific recommendations provided by Gemini.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No matching resumes to display or an error occurred. Please try again.</p>
+        {% endif %}
+
+        <a href="/matchresume" class="back-button">Go Back</a>
+
+        <div class="footer">
+            <p>&copy; 2025 ATS Matcher. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
