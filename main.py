@@ -18,29 +18,23 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'Uploads/'
 app.config['CACHE_FOLDER'] = 'Cache/'
 
-# Set up logging to DEBUG level for detailed output during troubleshooting
+
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Configure Gemini API
-# !!! IMPORTANT: NEVER HARDCODE API KEYS IN PRODUCTION CODE. USE ENVIRONMENT VARIABLES.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     logger.error("GEMINI_API_KEY environment variable not set. Please set it before running the application.")
-    # For production, you might raise an exception or exit here.
-    # For dev, we'll continue but Gemini calls will return errors.
+
 else:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# Load spaCy model
 try:
     nlp = spacy.load("en_core_web_sm")
     logger.info("spaCy model 'en_core_web_sm' loaded successfully.")
 except Exception as e:
     logger.error(f"Failed to load spaCy model: {str(e)}. Please run 'python -m spacy download en_core_web_sm'")
-    raise # Re-raise to prevent the app from running without a critical dependency
-
-# Expanded list of soft skills
+    raise 
 SOFT_SKILLS = {
     "communication", "teamwork", "leadership", "problem-solving", "adaptability",
     "time management", "collaboration", "creativity", "work ethic", "interpersonal skills",
@@ -49,7 +43,7 @@ SOFT_SKILLS = {
     "attention to detail", "analytical skills"
 }
 
-# Expanded list of technical skills for validation (ensuring multi-word skills are present)
+
 TECHNICAL_SKILLS = {
     "python", "java", "javascript", "html", "css", "mysql", "mongodb", "pandas",
     "numpy", "matplotlib", "scikit-learn", "power bi", "aws", "azure", "git",
@@ -59,14 +53,14 @@ TECHNICAL_SKILLS = {
     "deep learning", "natural language processing", "data analysis", "data visualization",
     "cloud computing", "devops", "kubernetes", "docker", "sql", "excel", "tableau",
     "r", "c++", "c#", "scala", "go", "spring boot", "node.js", "typescript",
-    # Specific multi-word variants from your CV - crucial for PhraseMatcher
+
     "data analysis and visualisation",
     "git and github",
     "rest apis",
     "apache spark",
     "linear regression",
     "decision tree",
-    "aws lambda", # From AI-FRAUD DETECTION SYSTEM
+    "aws lambda", 
     "aws glue",   # From AI-FRAUD DETECTION SYSTEM
     "aws iam",    # From AI-FRAUD DETECTION SYSTEM
     "next.js",    # From WORK EXPERIENCE

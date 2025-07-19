@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous">
     <link rel="stylesheet" href="../static/home.css">
     <style>
-        /* Additional styles specific to ATS results page */
+
         .results-header {
             margin-bottom: 2rem;
         }
@@ -218,12 +218,11 @@
     </style>
 </head>
 <body>
-    <!-- Background Decorations -->
+
     <div class="bg-decoration"></div>
     <div class="bg-decoration"></div>
     <div class="bg-decoration"></div>
 
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="logo">JobSyncPro</a>
@@ -353,14 +352,12 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <p>&copy; 2025 JobSyncPro. Advanced Resume Matching Platform.</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth scrolling for navigation links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -373,7 +370,7 @@
                 });
             });
 
-            // Add navbar scroll effect
+
             window.addEventListener('scroll', function() {
                 const navbar = document.querySelector('.navbar');
                 if (window.scrollY > 50) {
@@ -383,7 +380,7 @@
                 }
             });
 
-            // Add smooth animations for cards on scroll
+ 
             const observerOptions = {
                 threshold: 0.1,
                 rootMargin: '0px 0px -50px 0px'
@@ -398,7 +395,7 @@
                 });
             }, observerOptions);
 
-            // Observe all resume result cards
+            
             document.querySelectorAll('.resume-result-card').forEach((card, index) => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(30px)';
@@ -406,7 +403,7 @@
                 observer.observe(card);
             });
 
-            // Add click animation to skill badges
+            
             document.querySelectorAll('.skill-badge, .soft-skill-badge, .missing-keyword').forEach(badge => {
                 badge.addEventListener('click', function() {
                     this.style.transform = 'scale(0.95)';

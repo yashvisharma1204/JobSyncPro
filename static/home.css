@@ -14,7 +14,6 @@
             min-height: 100vh;
         }
 
-        /* Animated Background Elements */
         .bg-decoration {
             position: fixed;
             pointer-events: none;
@@ -56,7 +55,6 @@
             75% { transform: translateY(-30px) rotate(3deg); }
         }
 
-        /* Navigation */
         .navbar {
             position: fixed;
             top: 0;
@@ -226,7 +224,6 @@
             box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
         }
 
-        /* Main Container */
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -235,7 +232,6 @@
             z-index: 2;
         }
 
-        /* Card Styling */
         .card {
             background: rgba(24, 34, 54, 0.7);
             backdrop-filter: blur(20px);
@@ -309,7 +305,6 @@
             z-index: 2;
         }
 
-        /* Form Styling */
         .form-group {
             margin-bottom: 2rem;
             position: relative;
@@ -352,7 +347,6 @@
             padding-top: 1rem;
         }
 
-        /* File Input Styling */
         .file-input-wrapper {
             position: relative;
             padding: 2rem;
@@ -393,7 +387,7 @@
             color: #60a5fa;
         }
 
-        /* Button Styling */
+    
         .btn-submit {
             background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
             border: none;
@@ -431,7 +425,7 @@
             box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
         }
 
-        /* Alert/Results Styling */
+
         .alert {
             border-radius: 10px;
             margin-top: 2.5rem;
@@ -461,7 +455,6 @@
             z-index: 2;
         }
 
-        /* Resume Card Styling */
         .resume-card {
             background: rgba(15, 23, 42, 0.7);
             border: 1px solid rgba(59, 130, 246, 0.1);
@@ -558,7 +551,6 @@
             z-index: 2;
         }
 
-        /* Footer */
         .footer {
             background: rgb(11, 17, 30);
             padding: 2rem 0;
@@ -579,7 +571,7 @@
             position: relative;
             z-index: 2;
         }
-        /* Responsive Design */
+
         @media (max-width: 768px) {
             .nav-links {
                 display: none;

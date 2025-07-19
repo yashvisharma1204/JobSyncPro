@@ -13,7 +13,6 @@
             overflow-x: hidden;
         }
         
-        /* Animated Background Elements */
         .bg-decoration {
             position: fixed;
             pointer-events: none;
@@ -55,7 +54,6 @@
             75% { transform: translateY(-30px) rotate(3deg); }
         }
 
-        /* Navigation */
         .navbar {
             position: fixed;
             top: 0;
@@ -224,7 +222,7 @@
             box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
         }
 
-        /* Hero Section */
+   
         .hero {
             padding: 180px 0 100px;
             background: 
@@ -352,7 +350,6 @@
             box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
         }
 
-        /* Quick Stats */
         .quick-stats {
             padding: 2rem 0;
             background: rgba(15, 23, 42, 0.7);
@@ -440,7 +437,6 @@
             z-index: 2;
         }
 
-        /* Documentation Style Features */
         .features {
             padding: 3rem 4rem;
             background: rgb(11, 17, 30);
@@ -483,7 +479,7 @@
             font-size: 1.125rem;
         }
 
-        /* Bento Grid Layout */
+
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
@@ -603,7 +599,7 @@
             z-index: 2;
         }
         
-        /* Process Section */
+ 
         .process {
             padding: 3rem 0;
             background: rgba(15, 23, 42, 0.7);
@@ -652,7 +648,7 @@
             color: #ffffff;
             margin-bottom: 0.75rem;
         }
-        /* Process Section */
+
         .process {
             padding: 3rem 0;
             background: 
@@ -683,8 +679,6 @@
             line-height: 1.6;
         }
 
-
-        /* CTA Section */
         .cta {
             padding: 4rem 0;
             background: linear-gradient(135deg, rgb(11, 17, 30,0.05) 0%, rgb(11, 17, 30) 100%);
@@ -724,7 +718,6 @@
             margin-right: auto;
         }
 
-        /* Footer */
         .footer {
             background: rgb(11, 17, 30);
             padding: 2rem 0;
@@ -736,7 +729,7 @@
             font-size: 0.875rem;
         }
 
-        /* Responsive Design */
+
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
