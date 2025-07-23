@@ -1,4 +1,4 @@
-<h1 align="center">🤖 JobSyncPro:AI-Powered Recruitment Suite</h1>
+<h1 align="center">🤖 JobSyncPro: Ai-Powered Recruitment Suite</h1>
 <p align="center"><i>Optimize Resumes, Simulate Interviews — Your AI-Powered Career Assistant</i></p>
 
 <p align="center">
