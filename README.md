@@ -39,9 +39,10 @@
 ## 📌 Overview
 
 **JobSyncPro** is an AI-powered platform with two main modules:
-🎯 `Resume ATS Scoring System:` This module acts as your intelligent resume gatekeeper. It leverages advanced NLP techniques to extract crucial keywords from job descriptions. Its core strength lies in its `hybrid matching approach: combining Google Gemini's sophisticated semantic understanding (contributing 70% to the score) to grasp contextual relevance and infer skills, with traditional TF-IDF-based keyword similarity (contributing 30%) `for a robust statistical measure of direct term overlap. This ensures a comprehensive and fair assessment of how well a resume truly aligns with a job's requirements. Beyond just a score, it provides actionable improvement suggestions via Gemini.
 
-🧠 `AI-Powered Interview System:` Following resume screening, this module takes over. It uses Generative AI to parse candidate resumes, intelligently generating personalized interview questions tailored to their unique experience. It then assesses candidate responses and delivers immediate, constructive feedback, preparing candidates and providing recruiters with deeper insights.
+- 🎯 `Resume ATS Scoring System:` This module acts as your intelligent resume gatekeeper. It leverages advanced NLP techniques to extract crucial keywords from job descriptions. Its core strength lies in its `hybrid matching approach: combining Google Gemini's sophisticated semantic understanding (contributing 70% to the score) to grasp contextual relevance and infer skills, with traditional TF-IDF-based keyword similarity (contributing 30%) `for a robust statistical measure of direct term overlap. This ensures a comprehensive and fair assessment of how well a resume truly aligns with a job's requirements. Beyond just a score, it provides actionable improvement suggestions via Gemini.
+
+- 🧠 `AI-Powered Interview System:` Following resume screening, this module takes over. It uses Generative AI to parse candidate resumes, intelligently generating personalized interview questions tailored to their unique experience. It then assesses candidate responses and delivers immediate, constructive feedback, preparing candidates and providing recruiters with deeper insights.
 
 ## ✨ Features
 
