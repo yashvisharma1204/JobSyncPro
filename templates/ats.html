@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous">
     <link rel="stylesheet" href="../static/home.css">
     <style>
-
+        /* Existing styles from your provided HTML */
         .results-header {
             margin-bottom: 2rem;
         }
-        
+
         .job-description-section {
             background: transparent;
             color: white;
@@ -164,6 +164,10 @@
             border-radius: 10px;
             margin-bottom: 0.5rem;
             border-left: 3px solid #3a2174cb;
+            color: #e0e7ff; /* Lighter text for better contrast */
+        }
+        .recommendation-item i {
+            color: #a78bfa; /* Icon color */
         }
 
         .no-results-message {
@@ -172,6 +176,7 @@
             background: rgba(13, 19, 38, 0.95);
             border-radius: 20px;
             margin-top: 2rem;
+            color: #e2e8f0;
         }
 
         .no-results-message i {
@@ -204,16 +209,61 @@
             .results-container {
                 grid-template-columns: 1fr;
             }
-            
+
             .resume-result-header {
                 flex-direction: column;
                 gap: 1rem;
                 align-items: flex-start;
             }
-            
+
             .match-score {
                 align-self: flex-end;
             }
+        }
+
+        /* --- NEW STYLES FOR QUALITY FEEDBACK SECTION --- */
+        .quality-feedback-section {
+            background: linear-gradient(135deg, #1A3E5C, #0F2027); /* Darker blue/green gradient */
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-top: 1.5rem;
+            border-left: 4px solid #1c78a0; /* Distinct border color */
+        }
+
+        .quality-feedback-section h4 {
+            color: #4CAF50; /* Green color for main heading */
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quality-feedback-section h5 {
+            color: #7ab3c4; /* Lighter blue for sub-headings */
+            margin-top: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .quality-feedback-section ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
+
+        .quality-feedback-section ul li {
+            background: rgba(40, 70, 90, 0.7); /* Slightly lighter background for list items */
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #66bb6a; /* Green border for items */
+            color: #e0f7fa; /* Light text color */
+        }
+        .quality-feedback-section ul li i {
+            color: #66bb6a; /* Icon color for items */
+            margin-right: 0.5rem;
         }
     </style>
 </head>
@@ -317,7 +367,7 @@
                                 <div class="recommendations-section">
                                     <h4>
                                         <i class="fas fa-lightbulb"></i>
-                                        AI Recommendations for Improvement
+                                        General Recommendations for Match Improvement
                                     </h4>
                                     {% if resume.recommendation_data.recommendations %}
                                         {% for recommendation_item in resume.recommendation_data.recommendations %}
@@ -329,11 +379,88 @@
                                     {% else %}
                                         <p style="color: #16a34a; font-weight: 600;">
                                             <i class="fas fa-trophy"></i>
-                                            No further recommendations needed. Your resume looks comprehensive!
+                                            No further general recommendations needed for job fit.
                                         </p>
                                     {% endif %}
                                 </div>
-                            </div>
+
+                                <div class="quality-feedback-section">
+                                    <h4>
+                                        <i class="fas fa-star"></i>
+                                        Resume Quality Feedback
+                                    </h4>
+                                    {% set qf = resume.recommendation_data.quality_feedback %}
+                                    
+                                    {% if qf %}
+                                        {% if qf.grammar_issues %}
+                                            <h5><i class="fas fa-spell-check"></i> Grammar & Spelling:</h5>
+                                            <ul>
+                                                {% for issue in qf.grammar_issues %}
+                                                    <li><i class="fas fa-dot-circle"></i> {{ issue }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <h5><i class="fas fa-spell-check"></i> Grammar & Spelling:</h5>
+                                            <p style="color: #a0d9b4; font-style: italic;">No significant grammar or spelling issues found.</p>
+                                        {% endif %}
+
+                                        {% if qf.structural_suggestions %}
+                                            <h5><i class="fas fa-sitemap"></i> Structure & Formatting:</h5>
+                                            <ul>
+                                                {% for suggestion in qf.structural_suggestions %}
+                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <h5><i class="fas fa-sitemap"></i> Structure & Formatting:</h5>
+                                            <p style="color: #a0d9b4; font-style: italic;">Structure appears generally good for ATS compatibility.</p>
+                                        {% endif %}
+
+                                        {% if qf.quantifiable_achievements %}
+                                            <h5><i class="fas fa-chart-line"></i> Quantifiable Achievements:</h5>
+                                            <ul>
+                                                {% for suggestion in qf.quantifiable_achievements %}
+                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <h5><i class="fas fa-chart-line"></i> Quantifiable Achievements:</h5>
+                                            <p style="color: #a0d9b4; font-style: italic;">Good use of quantifiable achievements noted, or no specific suggestions at this time.</p>
+                                        {% endif %}
+
+                                        {% if qf.action_verbs %}
+                                            <h5><i class="fas fa-running"></i> Strong Action Verbs:</h5>
+                                            <ul>
+                                                {% for suggestion in qf.action_verbs %}
+                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <h5><i class="fas fa-running"></i> Strong Action Verbs:</h5>
+                                            <p style="color: #a0d9b4; font-style: italic;">Action verb usage appears strong, or no specific suggestions at this time.</p>
+                                        {% endif %}
+
+                                        {% if qf.conciseness_suggestions %}
+                                            <h5><i class="fas fa-cut"></i> Conciseness:</h5>
+                                            <ul>
+                                                {% for suggestion in qf.conciseness_suggestions %}
+                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <h5><i class="fas fa-cut"></i> Conciseness:</h5>
+                                            <p style="color: #a0d9b4; font-style: italic;">Resume length and conciseness appear appropriate.</p>
+                                        {% endif %}
+
+                                        {% if not qf.grammar_issues and not qf.structural_suggestions and not qf.quantifiable_achievements and not qf.action_verbs and not qf.conciseness_suggestions %}
+                                            <p style="color: #a0d9b4; font-style: italic;">No specific quality issues were highlighted by the analysis.</p>
+                                        {% endif %}
+
+                                    {% else %}
+                                        <p style="color: #a0d9b4; font-style: italic;">No detailed quality feedback available for this resume.</p>
+                                    {% endif %}
+                                </div>
+                                </div>
                         {% endfor %}
                     </div>
                 {% else %}
@@ -370,7 +497,6 @@
                 });
             });
 
-
             window.addEventListener('scroll', function() {
                 const navbar = document.querySelector('.navbar');
                 if (window.scrollY > 50) {
@@ -380,7 +506,6 @@
                 }
             });
 
- 
             const observerOptions = {
                 threshold: 0.1,
                 rootMargin: '0px 0px -50px 0px'
@@ -395,7 +520,6 @@
                 });
             }, observerOptions);
 
-            
             document.querySelectorAll('.resume-result-card').forEach((card, index) => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(30px)';
@@ -403,7 +527,6 @@
                 observer.observe(card);
             });
 
-            
             document.querySelectorAll('.skill-badge, .soft-skill-badge, .missing-keyword').forEach(badge => {
                 badge.addEventListener('click', function() {
                     this.style.transform = 'scale(0.95)';
