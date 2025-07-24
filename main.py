@@ -509,7 +509,7 @@ def process_resume(resume_file, job_description, input_prompt):
         return None, 0.0, error_recommendation_data, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
 
 @app.route("/")
-def matchresume():
+def index():
     return render_template('main.html')
 
 @app.route("/matchresume")
