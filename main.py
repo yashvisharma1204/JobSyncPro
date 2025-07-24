@@ -14,6 +14,9 @@ import concurrent.futures
 import pickle
 import hashlib
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 current_year = datetime.now().year
 
@@ -31,6 +34,7 @@ if not GEMINI_API_KEY:
 
 else:
     genai.configure(api_key=GEMINI_API_KEY)
+    print(f"DEBUG: GEMINI_API_KEY loaded into app: '{GEMINI_API_KEY}'") 
 
 try:
     nlp = spacy.load("en_core_web_sm")
@@ -183,7 +187,7 @@ def get_gemini_response(job_description, resume_text, prompt):
     }
 
     try:
-        model = genai.GenerativeModel('gemini-2.0-flash') # Using flash as specified in original code
+        model = genai.GenerativeModel('gemini-1.5-flash') # Using flash as specified in original code
 
         input_text = f"Job Description:\n{job_description}\n\nResume:\n{resume_text}"
 
@@ -228,7 +232,7 @@ def parse_resume(resume_text):
     ]
 
     # REMOVED overwrite=True from here
-    matcher.add("SECTION", section_patterns) 
+    matcher.add("SECTION", section_patterns)
 
     # Add soft skill phrases to PhraseMatcher once
     soft_skill_phrases = [nlp.make_doc(phrase) for phrase in SOFT_SKILLS]
@@ -361,13 +365,15 @@ def parse_resume(resume_text):
     parsed_data = {
         "skills": skills,
         "soft_skills": soft_skills,
-        "raw_text": resume_text
+        "raw_text": resume_text,
+        "sections": {k: " ".join(v) for k, v in sections.items()} # Join section lines into a single string for storage
     }
 
     logger.debug(f"--- Finished parse_resume ---")
     logger.debug(f"Parsed resume FINAL technical skills: {parsed_data['skills']}")
     logger.debug(f"Parsed resume FINAL soft skills: {parsed_data['soft_skills']}")
     logger.debug(f"Parsed resume FINAL sections: {parsed_data['sections'].keys()}")
+    
     return parsed_data
 
 # Rest of your main.py code (get_gemini_response_cache_key, cache_gemini_response, etc.)
@@ -529,6 +535,7 @@ def matchresume(): # Now this is the form page
 
 @app.route('/matcher', methods=['POST'])
 def matcher():
+    current_year = datetime.now().year
     if request.method == 'POST':
         # Add a breakpoint here if running in an IDE, or use logging extensively
         job_description = request.form.get('job_description', '').strip()
