@@ -210,6 +210,7 @@
         }
 
         .btn-primary {
+            margin:  1rem;
             background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
             color: white;
             box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
@@ -220,6 +221,21 @@
             background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #1b1b1b 0%, #000000 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #dadada 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            color:black;
+            padding: 1rem;
         }
 
    

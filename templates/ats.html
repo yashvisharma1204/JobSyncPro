@@ -4,284 +4,708 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ATS Match Results - JobSyncPro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous">
-    <link rel="stylesheet" href="../static/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Existing styles from your provided HTML */
-        .results-header {
-            margin-bottom: 2rem;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #4b5ca2 100%);
+            --success-gradient: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            --warning-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            --danger-gradient: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            --info-gradient: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            --dark-surface: #071430;
+            --card-surface: rgb(243, 240, 240); /* Lighter background for content cards */
+            --text-primary: #000000; /* Darker text for light card backgrounds */
+            --text-secondary: rgba(0, 0, 0, 0.7); /* Darker text for light card backgrounds */
+            --border-color: rgba(200, 200, 200, 0.2); /* Lighter borders for light cards */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
-        .job-description-section {
-            background: transparent;
-            color: white;
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            border-left: 5px solid #132358;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .job-description-section h2 {
-            color: #fff;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.5rem;
-            font-weight: 600;
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
+            color: var(--text-primary); /* This will be overridden by elements with card-surface backgrounds */
+            min-height: 100vh;
         }
 
-        .results-container {
-            display: grid;
-            gap: 2rem;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-        }
-
-        .resume-result-card {
-            background: rgba(7, 32, 62, 0.482);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.5);
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(148, 163, 184, 0.1);
         }
 
-        .resume-result-card::before {
+        .navbar::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+            pointer-events: none;
         }
 
-        .resume-result-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.15);
-        }
-
-        .resume-result-header {
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f1f5f9;
+            height: 70px;
         }
 
-        .resume-result-header h3 {
-            margin: 0;
-            color: #cdcdcd;
+        .logo {
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+            border-radius: 2px;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-links {
             display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #cbd5e1;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border-radius: 20px;
+            transform: scale(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-links a:hover::before {
+            transform: scale(1);
+        }
+
+        .nav-links a:hover {
+            color: #60a5fa;
+            transform: translateY(-1px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .match-score {
-            font-size: 2rem;
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-outline {
+            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(147, 197, 253, 0.3);
+            color: #93c5fd;
+            box-shadow: 0 4px 16px rgba(147, 197, 253, 0.1);
+        }
+
+        .btn-outline:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 70px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(30, 41, 59, 0.5);
+            overflow-y: auto;
+            z-index: 100;
+            padding: 1.5rem;
+            color: white; /* Sidebar text color */
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-header h2 {
+            color: white;
+            font-size: 1.2rem;
             font-weight: 700;
-            color: #fff;
-            background: linear-gradient(135deg, #0c3623, #052313);
-            padding: 0.5rem 1rem;
-            border-radius: 15px;
-            border: 2px solid #10b98173;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .resume-list {
+            margin-bottom: 2rem;
+        }
+
+        .resume-item {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .resume-item:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateX(5px);
+        }
+
+        .resume-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.6);
+        }
+
+        .resume-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume-filename {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .resume-score {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .section-menu {
+            margin-bottom: 2rem;
+        }
+
+        .section-menu h3 {
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .section-nav {
+            list-style: none;
+        }
+
+        .section-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .section-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .section-nav a:hover {
+            background: rgba(30, 41, 59, 0.6);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .section-nav a.active {
+            background: rgba(102, 126, 234, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .section-nav i {
+            width: 16px;
+            text-align: center;
+        }
+
+        .sidebar-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .sidebar-btn.prev, .sidebar-btn.next {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .sidebar-btn.back {
+            background: var(--primary-gradient);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-btn:hover:not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .sidebar-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 300px;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+            margin-top: 70px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .results-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #64b3f4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .results-header p {
+            color: #cbd5e1; /* Changed to match sidebar/navbar text color */
+            font-size: 1.1rem;
+        }
+
+        /* Resume Content */
+        .resume-content {
+            display: none;
+        }
+
+        .resume-content.active {
+            display: block;
+        }
+
+        .content-section {
+            background: var(--card-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            scroll-margin-top: 100px; /* Offset for fixed navbar when scrolling to section */
+            color: var(--text-primary); /* Ensure text color within card is dark */
+        }
+
+        .content-section:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .section-header i {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .recommendations .section-header { border-bottom-color: #8b5cf6; }
+        .recommendations .section-header i { color: #8b5cf6; }
+
+        .skills .section-header { border-bottom-color: #3b82f6; }
+        .skills .section-header i { color: #3b82f6; }
+
+        .missing .section-header { border-bottom-color: #ef4444; }
+        .missing .section-header i { color: #ef4444; }
+
+        .quality .section-header { border-bottom-color: #10b981; }
+        .quality .section-header i { color: #10b981; }
+
+        /* Recommendations */
+        .recommendation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .recommendation-item {
+            background: rgba(139, 92, 246, 0.05);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid #8b5cf6;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-secondary); /* Text color for recommendations */
+        }
+
+        .recommendation-item i {
+            color: #8b5cf6;
+            margin-top: 0.1rem;
+            flex-shrink: 0;
+        }
+
+        /* Skills Display */
+        .skills-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .skill-group h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
         }
 
         .skills-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-bottom: 1rem;
         }
 
-        .skill-badge {
-            background: linear-gradient(135deg, #083b7e, #021d3d);
-            color: #fff;
+        .skill-tag {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
             padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
+            border-radius: 1.5rem;
+            font-size: 0.85rem;
             font-weight: 500;
-            border: 1px solid #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            transition: all 0.2s ease;
         }
 
-        .soft-skill-badge {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            color: #92400e;
-            border: 1px solid #f59e0b;
+        .skill-tag:hover {
+            transform: translateY(-2px);
+            background: rgba(59, 130, 246, 0.15);
         }
 
-        .missing-section {
-            background: linear-gradient(135deg, #571c1c, #3e0d0dbd);
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin-top: 1.5rem;
-            border-left: 4px solid #220404;
+        .skill-tag.soft {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #f59e0b;
         }
 
-        .missing-section h4 {
-            color: #dc2626;
-            margin-bottom: 1rem;
+        /* Missing Keywords */
+        .missing-keywords {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
         }
 
         .missing-keyword {
-            background: #864d4dbd;
-            color: #dc2626;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
             padding: 0.5rem 1rem;
-            border-radius: 15px;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            border: 1px solid #ef4444;
-            margin: 0.25rem;
-            display: inline-block;
-        }
-
-        .recommendations-section {
-            background: linear-gradient(135deg, #34276b8d, #221656aa);
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin-top: 1.5rem;
-            border-left: 4px solid #2c1a56;
-        }
-
-        .recommendations-section h4 {
-            color: #7c3aed;
-            margin-bottom: 1rem;
+            border: 1px solid rgba(239, 68, 68, 0.2);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .recommendation-item {
-            background: rgba(56, 30, 122, 0.7);
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            border-left: 3px solid #3a2174cb;
-            color: #e0e7ff; /* Lighter text for better contrast */
-        }
-        .recommendation-item i {
-            color: #a78bfa; /* Icon color */
+        .keyword-meta {
+            font-size: 0.65rem;
+            opacity: 0.8;
         }
 
-        .no-results-message {
-            text-align: center;
-            padding: 3rem;
-            background: rgba(13, 19, 38, 0.95);
-            border-radius: 20px;
-            margin-top: 2rem;
-            color: #e2e8f0;
+        /* Quality Feedback */
+        .quality-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
 
-        .no-results-message i {
-            font-size: 4rem;
-            color: #94a3b8;
-            margin-bottom: 1rem;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 2rem;
-            padding: 1rem 2rem;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            text-decoration: none;
-            border-radius: 15px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .back-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-        }
-
-        @media (max-width: 768px) {
-            .results-container {
-                grid-template-columns: 1fr;
-            }
-
-            .resume-result-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: flex-start;
-            }
-
-            .match-score {
-                align-self: flex-end;
-            }
-        }
-
-        /* --- NEW STYLES FOR QUALITY FEEDBACK SECTION --- */
-        .quality-feedback-section {
-            background: linear-gradient(135deg, #1A3E5C, #0F2027); /* Darker blue/green gradient */
+        .quality-section {
+            background: rgba(16, 185, 129, 0.05);
             padding: 1.5rem;
-            border-radius: 15px;
-            margin-top: 1.5rem;
-            border-left: 4px solid #1c78a0; /* Distinct border color */
+            border-radius: 0.75rem;
+            border-left: 4px solid #10b981;
         }
 
-        .quality-feedback-section h4 {
-            color: #4CAF50; /* Green color for main heading */
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .quality-feedback-section h5 {
-            color: #7ab3c4; /* Lighter blue for sub-headings */
-            margin-top: 1rem;
-            margin-bottom: 0.75rem;
+        .quality-section h4 {
             font-size: 1.1rem;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-            padding-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .quality-feedback-section ul {
+        .quality-section ul {
             list-style: none;
-            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quality-section li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .quality-section li i {
+            color: #10b981;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-surface);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(30, 41, 59, 0.5);
+            margin-left: 300px; /* Aligns with main content */
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--card-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            color: var(--text-primary);
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            color: var(--text-secondary);
             margin-bottom: 1rem;
         }
 
-        .quality-feedback-section ul li {
-            background: rgba(40, 70, 90, 0.7); /* Slightly lighter background for list items */
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+        .no-results h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
             margin-bottom: 0.5rem;
-            border-left: 3px solid #66bb6a; /* Green border for items */
-            color: #e0f7fa; /* Light text color */
+            color: var(--text-primary);
         }
-        .quality-feedback-section ul li i {
-            color: #66bb6a; /* Icon color for items */
-            margin-right: 0.5rem;
+
+        .no-results p {
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .footer {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+                position: fixed;
+                top: 85px;
+                left: 1rem;
+                z-index: 101;
+                background: var(--primary-gradient);
+                color: white;
+                border: none;
+                padding: 0.75rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none; /* Hidden by default for desktop */
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section {
+            animation: fadeInUp 0.6s ease-out;
         }
     </style>
 </head>
 <body>
-
-    <div class="bg-decoration"></div>
-    <div class="bg-decoration"></div>
-    <div class="bg-decoration"></div>
-
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="logo">JobSyncPro</a>
             <ul class="nav-links">
                 <li><a href="{{ url_for('matchresume') }}">Home</a></li>
-                <li><a href="https://github.com/yashvisharma1204/JobSyncPro">Documentation</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#process">Process</a></li>
-            </ul>
+                <li><a href="https://github.com/yashvisharma1204/JobSyncPro" target="_blank">Documentation</a></li>
+                </ul>
             <div class="auth-buttons">
                 <a href="#" class="btn btn-outline">Login</a>
                 <a href="#" class="btn btn-primary">Sign Up</a>
@@ -289,252 +713,334 @@
         </div>
     </nav>
 
-    <div class="container">
-        <div class="card">
-            <div class="card-header results-header">
-                <h2><i class="fas fa-chart-line"></i> ATS Match Results</h2>
-            </div>
-            <div class="card-body">
-                <div class="job-description-section">
-                    <h2>
-                        <i class="fas fa-file-text"></i>
-                        Job Description Analysis
-                    </h2>
-                    <p>{{ job_description }}</p>
-                </div>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
 
-                {% if top_resumes %}
-                    <div class="results-container">
-                        {% for resume in top_resumes %}
-                            <div class="resume-result-card">
-                                <div class="resume-result-header">
-                                    <h3>
-                                        <i class="fas fa-file-alt"></i>
-                                        {{ resume.filename }}
-                                    </h3>
-                                    <div class="match-score">{{ resume.score }}%</div>
-                                </div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>ATS Results</h2>
+            <p>Navigate through resume analysis</p>
+        </div>
 
-                                <div class="section-header">
-                                    <i class="fas fa-code"></i> Technical Skills Found
-                                </div>
-                                {% if resume.skills %}
-                                    <div class="skills-grid">
-                                        {% for skill in resume.skills %}
-                                            <span class="skill-badge">{{ skill }}</span>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <p style="color: #64748b; font-style: italic;">No technical skills were automatically identified by the parser.</p>
-                                {% endif %}
-
-                                <div class="section-header">
-                                    <i class="fas fa-heart"></i> Soft Skills Found
-                                </div>
-                                {% if resume.soft_skills %}
-                                    <div class="skills-grid">
-                                        {% for skill in resume.soft_skills %}
-                                            <span class="skill-badge soft-skill-badge">{{ skill }}</span>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <p style="color: #64748b; font-style: italic;">No soft skills were automatically identified by the parser.</p>
-                                {% endif %}
-
-                                <div class="missing-section">
-                                    <h4>
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        Missing Keywords (AI Analysis)
-                                    </h4>
-                                    {% if resume.recommendation_data.missing_keywords %}
-                                        <div>
-                                            {% for keyword in resume.recommendation_data.missing_keywords %}
-                                                <span class="missing-keyword">
-                                                    <strong>{{ keyword.keyword }}</strong>
-                                                    {% if keyword.type %}({{ keyword.type | capitalize }}){% endif %}
-                                                    {% if keyword.importance %}[{{ keyword.importance | capitalize }}]{% endif %}
-                                                </span>
-                                            {% endfor %}
-                                        </div>
-                                    {% else %}
-                                        <p style="color: #16a34a; font-weight: 600;">
-                                            <i class="fas fa-check-circle"></i>
-                                            No specific missing keywords identified. Great job!
-                                        </p>
-                                    {% endif %}
-                                </div>
-
-                                <div class="recommendations-section">
-                                    <h4>
-                                        <i class="fas fa-lightbulb"></i>
-                                        General Recommendations for Match Improvement
-                                    </h4>
-                                    {% if resume.recommendation_data.recommendations %}
-                                        {% for recommendation_item in resume.recommendation_data.recommendations %}
-                                            <div class="recommendation-item">
-                                                <i class="fas fa-arrow-right" style="color: #8b5cf6; margin-right: 0.5rem;"></i>
-                                                {{ recommendation_item }}
-                                            </div>
-                                        {% endfor %}
-                                    {% else %}
-                                        <p style="color: #16a34a; font-weight: 600;">
-                                            <i class="fas fa-trophy"></i>
-                                            No further general recommendations needed for job fit.
-                                        </p>
-                                    {% endif %}
-                                </div>
-
-                                <div class="quality-feedback-section">
-                                    <h4>
-                                        <i class="fas fa-star"></i>
-                                        Resume Quality Feedback
-                                    </h4>
-                                    {% set qf = resume.recommendation_data.quality_feedback %}
-                                    
-                                    {% if qf %}
-                                        {% if qf.grammar_issues %}
-                                            <h5><i class="fas fa-spell-check"></i> Grammar & Spelling:</h5>
-                                            <ul>
-                                                {% for issue in qf.grammar_issues %}
-                                                    <li><i class="fas fa-dot-circle"></i> {{ issue }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <h5><i class="fas fa-spell-check"></i> Grammar & Spelling:</h5>
-                                            <p style="color: #a0d9b4; font-style: italic;">No significant grammar or spelling issues found.</p>
-                                        {% endif %}
-
-                                        {% if qf.structural_suggestions %}
-                                            <h5><i class="fas fa-sitemap"></i> Structure & Formatting:</h5>
-                                            <ul>
-                                                {% for suggestion in qf.structural_suggestions %}
-                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <h5><i class="fas fa-sitemap"></i> Structure & Formatting:</h5>
-                                            <p style="color: #a0d9b4; font-style: italic;">Structure appears generally good for ATS compatibility.</p>
-                                        {% endif %}
-
-                                        {% if qf.quantifiable_achievements %}
-                                            <h5><i class="fas fa-chart-line"></i> Quantifiable Achievements:</h5>
-                                            <ul>
-                                                {% for suggestion in qf.quantifiable_achievements %}
-                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <h5><i class="fas fa-chart-line"></i> Quantifiable Achievements:</h5>
-                                            <p style="color: #a0d9b4; font-style: italic;">Good use of quantifiable achievements noted, or no specific suggestions at this time.</p>
-                                        {% endif %}
-
-                                        {% if qf.action_verbs %}
-                                            <h5><i class="fas fa-running"></i> Strong Action Verbs:</h5>
-                                            <ul>
-                                                {% for suggestion in qf.action_verbs %}
-                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <h5><i class="fas fa-running"></i> Strong Action Verbs:</h5>
-                                            <p style="color: #a0d9b4; font-style: italic;">Action verb usage appears strong, or no specific suggestions at this time.</p>
-                                        {% endif %}
-
-                                        {% if qf.conciseness_suggestions %}
-                                            <h5><i class="fas fa-cut"></i> Conciseness:</h5>
-                                            <ul>
-                                                {% for suggestion in qf.conciseness_suggestions %}
-                                                    <li><i class="fas fa-dot-circle"></i> {{ suggestion }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <h5><i class="fas fa-cut"></i> Conciseness:</h5>
-                                            <p style="color: #a0d9b4; font-style: italic;">Resume length and conciseness appear appropriate.</p>
-                                        {% endif %}
-
-                                        {% if not qf.grammar_issues and not qf.structural_suggestions and not qf.quantifiable_achievements and not qf.action_verbs and not qf.conciseness_suggestions %}
-                                            <p style="color: #a0d9b4; font-style: italic;">No specific quality issues were highlighted by the analysis.</p>
-                                        {% endif %}
-
-                                    {% else %}
-                                        <p style="color: #a0d9b4; font-style: italic;">No detailed quality feedback available for this resume.</p>
-                                    {% endif %}
-                                </div>
-                                </div>
-                        {% endfor %}
+        {% if top_resumes %}
+            <div class="resume-list">
+                {% for resume in top_resumes %}
+                    <div class="resume-item {% if loop.index0 == 0 %}active{% endif %}" data-index="{{ loop.index0 }}" onclick="showResume(this.dataset.index)">
+                        <div class="resume-item-header">
+                            <div class="resume-filename" title="{{ resume.filename }}">{{ resume.filename }}</div>
+                            <div class="resume-score">{{ resume.score }}%</div>
+                        </div>
                     </div>
-                {% else %}
-                    <div class="no-results-message">
-                        <i class="fas fa-search"></i>
-                        <h3>No Results Found</h3>
-                        <p>No matching resumes to display or an error occurred during processing. Please try again with different parameters.</p>
-                    </div>
-                {% endif %}
-
-                <a href="/matchresume" class="back-button">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Matcher
-                </a>
+                {% endfor %}
             </div>
+        {% else %}
+            <div class="no-results" style="background:none; border:none; box-shadow:none;">
+                <i class="fas fa-exclamation-circle" style="color:#94a3b8;"></i>
+                <h3 style="color:white;">No Resumes Analyzed</h3>
+                <p style="color:#cbd5e1;">Please upload resumes to see ATS match results.</p>
+            </div>
+        {% endif %}
+
+        <div class="section-menu">
+            <h3>Sections</h3>
+            <ul class="section-nav">
+                <li><a href="#recommendations" class="active" onclick="scrollToSection('recommendations')">
+                    <i class="fas fa-lightbulb"></i>
+                    Recommendations
+                </a></li>
+                <li><a href="#technical-skills" onclick="scrollToSection('technical-skills')">
+                    <i class="fas fa-code"></i>
+                    Technical Skills
+                </a></li>
+                <li><a href="#soft-skills" onclick="scrollToSection('soft-skills')">
+                    <i class="fas fa-users"></i>
+                    Soft Skills
+                </a></li>
+                <li><a href="#missing-skills" onclick="scrollToSection('missing-skills')">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Missing Skills
+                </a></li>
+                <li><a href="#quality" onclick="scrollToSection('quality')">
+                    <i class="fas fa-star"></i>
+                    Quality Feedback
+                </a></li>
+            </ul>
+        </div>
+
+        <div class="sidebar-controls">
+            <a href="{{ url_for('matchresume') }}" class="sidebar-btn back">
+                <i class="fas fa-arrow-left"></i>
+                Back to Matcher
+            </a>
         </div>
     </div>
 
+    <div class="main-content">
+        <div class="results-header">
+            <h1><i class="fas fa-chart-line"></i> ATS Match Results</h1>
+            <p style="color: #cbd5e1;">Comprehensive analysis of resume compatibility with job requirements</p>
+        </div>
+
+        {% if top_resumes %}
+            {% for resume in top_resumes %}
+                <div class="resume-content {% if loop.index0 == 0 %}active{% endif %}" id="resume-{{ loop.index0 }}">
+                    <div class="content-section recommendations" id="recommendations">
+                        <div class="section-header">
+                            <i class="fas fa-lightbulb"></i>
+                            <h2>Recommendations</h2>
+                        </div>
+                        {% if resume.recommendation_data.recommendations %}
+                            <div class="recommendation-list">
+                                {% for recommendation in resume.recommendation_data.recommendations %}
+                                    <div class="recommendation-item">
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span>{{ recommendation }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="recommendation-item">
+                                <i class="fas fa-trophy"></i>
+                                <span>Excellent match! No additional recommendations needed.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="content-section skills" id="technical-skills">
+                        <div class="section-header">
+                            <i class="fas fa-code"></i>
+                            <h2>Technical Skills</h2>
+                        </div>
+                        <div class="skills-container">
+                            <div class="skill-group">
+                                <h3>Technical Skills Found</h3>
+                                <div class="skills-grid">
+                                    {% if resume.skills %}
+                                        {% for skill in resume.skills %}
+                                            <span class="skill-tag">{{ skill }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="skill-tag">No technical skills detected</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-section skills" id="soft-skills">
+                        <div class="section-header">
+                            <i class="fas fa-users"></i>
+                            <h2>Soft Skills</h2>
+                        </div>
+                        <div class="skills-container">
+                            <div class="skill-group">
+                                <h3>Soft Skills Found</h3>
+                                <div class="skills-grid">
+                                    {% if resume.soft_skills %}
+                                        {% for skill in resume.soft_skills %}
+                                            <span class="skill-tag soft">{{ skill }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="skill-tag soft">No soft skills detected</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-section missing" id="missing-skills">
+                        <div class="section-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h2>Missing Skills</h2>
+                        </div>
+                        {% if resume.recommendation_data.missing_keywords %}
+                            <div class="missing-keywords">
+                                {% for keyword_obj in resume.recommendation_data.missing_keywords %}
+                                    <div class="missing-keyword">
+                                        <strong>{{ keyword_obj.keyword }}</strong>
+                                        {% if keyword_obj.type and keyword_obj.importance %}
+                                            <span class="keyword-meta">({{ keyword_obj.type }} / {{ keyword_obj.importance }})</span>
+                                        {% elif keyword_obj.type %}
+                                            <span class="keyword-meta">({{ keyword_obj.type }})</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="missing-keyword">
+                                <strong>No missing skills detected</strong>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="content-section quality" id="quality">
+                        <div class="section-header">
+                            <i class="fas fa-star"></i>
+                            <h2>Quality Feedback</h2>
+                        </div>
+                        {% if resume.recommendation_data.quality_feedback %}
+                            <div class="quality-sections">
+                                {% set quality_categories_order = [
+                                    ('grammar_issues', 'fas fa-spell-check', 'Grammar & Spelling'),
+                                    ('structural_suggestions', 'fas fa-sitemap', 'Structure & Formatting'),
+                                    ('quantifiable_achievements', 'fas fa-chart-line', 'Quantifiable Achievements'),
+                                    ('action_verbs', 'fas fa-bolt', 'Action Verbs'),
+                                    ('conciseness_suggestions', 'fas fa-cut', 'Conciseness')
+                                ] %}
+
+                                {% for key, icon_class, title in quality_categories_order %}
+                                    {% if resume.recommendation_data.quality_feedback[key] is defined %}
+                                        <div class="quality-section">
+                                            <h4><i class="{{ icon_class }}"></i> {{ title }}</h4>
+                                            <ul>
+                                                {% if resume.recommendation_data.quality_feedback[key] %}
+                                                    {% for item in resume.recommendation_data.quality_feedback[key] %}
+                                                        <li>
+                                                            <i class="fas fa-circle"></i>
+                                                            {{ item }}
+                                                        </li>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <li>
+                                                        <i class="fas fa-circle"></i>
+                                                        No specific feedback in this category provided.
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% for section_key, feedback_list in resume.recommendation_data.quality_feedback.items() %}
+                                    {% if section_key not in ['grammar_issues', 'structural_suggestions', 'quantifiable_achievements', 'action_verbs', 'conciseness_suggestions'] %}
+                                        <div class="quality-section">
+                                            <h4><i class="fas fa-info-circle"></i> {{ section_key.replace('_', ' ').title() }}</h4>
+                                            <ul>
+                                                {% if feedback_list %}
+                                                    {% for item in feedback_list %}
+                                                        <li>
+                                                            <i class="fas fa-circle"></i>
+                                                            {{ item }}
+                                                        </li>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <li>
+                                                        <i class="fas fa-circle"></i>
+                                                        No specific feedback in this category provided.
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="quality-section">
+                                <h4><i class="fas fa-check-circle"></i> General Feedback</h4>
+                                <ul>
+                                    <li>
+                                        <i class="fas fa-circle"></i>
+                                        No specific quality feedback available from AI or local analysis.
+                                    </li>
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-results">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>No Results Available</h3>
+                <p>Please upload resumes and job descriptions to see ATS match results.</p>
+            </div>
+        {% endif %}
+    </div>
+
     <footer class="footer">
-        <p>&copy; 2025 JobSyncPro. Advanced Resume Matching Platform.</p>
+        <p>&copy; {{ current_year }} JobSyncPro. All rights reserved.</p>
+        <p>
+            <a href="#privacy">Privacy Policy</a>
+            <a href="#terms">Terms of Service</a>
+            <a href="#contact">Contact Us</a>
+        </p>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth'
-                        });
-                    }
+        let currentResumeIndex = 0;
+        const resumes = document.querySelectorAll('.resume-content');
+        const resumeItems = document.querySelectorAll('.resume-item');
+
+        // Function to show a specific resume's content
+        function showResume(index) {
+            index = parseInt(index); // Ensure index is a number
+            if (index < 0 || index >= resumes.length) return;
+
+            // Remove active class from all resumes and sidebar items
+            resumes.forEach(resume => resume.classList.remove('active'));
+            resumeItems.forEach(item => item.classList.remove('active'));
+
+            // Add active class to selected resume and sidebar item
+            resumes[index].classList.add('active');
+            resumeItems[index].classList.add('active');
+            currentResumeIndex = index; // Update current index
+
+            // Reset scroll position to top of first content section for the newly active resume
+            const firstContentSection = resumes[index].querySelector('.content-section');
+            if (firstContentSection) {
+                firstContentSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+            }
+
+            // Update active state of section nav links
+            document.querySelectorAll('.section-nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            // Set the first section link as active by default when a new resume is shown
+            const firstNavLink = document.querySelector('.section-nav a');
+            if (firstNavLink) {
+                firstNavLink.classList.add('active');
+            }
+
+            // For mobile view, hide sidebar after selection
+            if (window.innerWidth <= 1024) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        // Function to scroll to a specific content section
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+                // Update active nav link
+                document.querySelectorAll('.section-nav a').forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === `#${sectionId}`);
                 });
-            });
+            }
+            // For mobile view, hide sidebar after navigating
+            if (window.innerWidth <= 1024) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
 
-            window.addEventListener('scroll', function() {
-                const navbar = document.querySelector('.navbar');
-                if (window.scrollY > 50) {
-                    navbar.style.background = 'rgba(15, 23, 42, 0.95)';
-                } else {
-                    navbar.style.background = 'rgba(15, 23, 42, 0.85)';
-                }
-            });
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
 
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
+        // Initialize display on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (resumes.length > 0) {
+                showResume(0); // Show the first resume by default
+            }
+        });
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.resume-result-card').forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px)';
-                card.style.transition = `all 0.6s ease ${index * 0.1}s`;
-                observer.observe(card);
-            });
-
-            document.querySelectorAll('.skill-badge, .soft-skill-badge, .missing-keyword').forEach(badge => {
-                badge.addEventListener('click', function() {
-                    this.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        this.style.transform = 'scale(1)';
-                    }, 150);
-                });
-            });
+        // Handle window resize for responsive design
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
         });
     </script>
 </body>
