@@ -670,21 +670,15 @@ def matcher():
         input_prompt = """
         You are a skilled ATS (Applicant Tracking System) scanner and career coach with a deep understanding of data science, resume best practices, and ATS functionality.
         Evaluate the resume against the provided job description. Your goal is to provide a highly accurate and granular percentage match,
-        along with detailed missing keywords, actionable recommendations for improvement, and comprehensive feedback on resume quality (grammar, structure, impact, conciseness).
+        along with detailed missing keywords, actionable recommendations for improvement, and comprehensive textual feedback on resume quality.
 
-        **Instructions for a more flexible evaluation (Match Score & Missing Keywords):**
-        - **Prioritize core concepts and demonstrated experience** even if the exact keywords are not present. Look for evidence of the skill or experience through descriptions of projects, responsibilities, and achievements.
-        - **Consider common synonyms and related terms** for technical and soft skills. For example, "data manipulation" for "data wrangling," or "collaborative" for "teamwork."
-        - **Focus on the overall spirit of the requirement** rather than just a literal keyword match.
-        - **Be generous in attributing a skill** if there's clear evidence of its application, even if the skill name isn't explicitly listed in a "Skills" section.
-        - **Acknowledge and give credit for relevant foundational knowledge** even if advanced versions of a skill are missing.
-        - **For "missing keywords," focus on truly absent critical requirements.** If a skill is present but could be elaborated, suggest elaboration in recommendations rather not listing it as "missing."
-
-        Strictly adhere to the following percentage calculation weighting:
-        - Technical Skills (e.g., programming languages, frameworks, tools, algorithms): 50%
-        - Work Experience & Projects (relevance, depth, impact, quantifiable achievements, duration): 30%
-        - Soft Skills (e.g., communication, problem-solving, teamwork, leadership): 10%
-        - Education & Certifications (relevance of degree, institutions, relevant courses): 10%
+        **Instructions for Percentage Match (percentage_match):**
+        When calculating 'percentage_match', factor in ALL aspects of a strong resume for the given job. This includes:
+        - **Technical Skills (e.g., programming languages, frameworks, tools, algorithms):** 50% contribution to this score. Give **very high credit** for skills **demonstrated in projects or experience descriptions**, even if not explicitly listed in a 'skills' section. Assess the depth of experience with *demonstrated* technologies. Focus heavily on the core requirements identified in the JD; **do not penalize significantly** for the absence of technologies listed as "such as" or in comprehensive lists that represent optional or alternative technologies.
+        - **Work Experience & Projects (relevance, depth, impact, quantifiable achievements, duration):** 30% contribution to this score. Look for direct relevance to the job duties and give **maximum possible weight** to projects that directly simulate or align with aspects of the job description (e.g., full-stack development, API design, database management). Emphasize **strong, quantifiable results and clear impact**.
+        - **Soft Skills (e.g., communication, problem-solving, teamwork, leadership):** 10% contribution to this score.
+        - **Education & Certifications (relevance of degree, institutions, relevant courses):** 10% contribution to this score.
+        - **Resume Quality (Grammar, Structure, Conciseness, Professionalism):** This is integrated into the overall 'percentage_match'. A well-written, error-free, and well-structured resume that is concise and professional should positively impact this score. **Specifically, if the resume shows good grammar, clear structure, and effective conciseness, significantly boost the overall 'percentage_match'. Conversely, any significant issues in these areas should noticeably reduce the score.**
 
         For each missing keyword, specify if it's a critical technical skill, a key soft skill, or a general requirement. Provide an 'importance' level: "critical", "important", or "optional".
 
