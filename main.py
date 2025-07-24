@@ -211,7 +211,7 @@ def get_gemini_response(job_description, resume_text, prompt):
     }
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash') # Using 1.5-flash for potential better JSON parsing
+        model = genai.GenerativeModel('gemini-2.0-flash') 
         input_text = f"Job Description:\n{job_description}\n\nResume:\n{resume_text}"
 
         response = model.generate_content([input_text, prompt], generation_config=generation_config)
