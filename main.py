@@ -124,7 +124,7 @@ def extract_text_from_txt(file_path):
         return ""
 
 def extract_text(file_path):
-    logger.debug(f"Processing file: {file_path}")
+    logger.debug(f"Attempting to extract text from: {file_path}")
     if file_path.endswith('.pdf'):
         return extract_text_from_pdf(file_path)
     elif file_path.endswith('.docx'):
@@ -132,7 +132,7 @@ def extract_text(file_path):
     elif file_path.endswith('.txt'):
         return extract_text_from_txt(file_path)
     else:
-        logger.error(f"Unsupported file format: {file_path}")
+        logger.error(f"Unsupported file format for text extraction: {file_path}")
         return ""
 
 # Generate cache key for Gemini response based on both JD and resume
@@ -192,7 +192,7 @@ def get_gemini_response(job_description, resume_text, prompt):
         logger.debug(f"Gemini API raw response: {response_text[:500]}...") # Log more of the response for debugging
         return response_text
     except Exception as e:
-        logger.error(f"Error in Gemini API response: {str(e)}")
+        logger.error(f"Error in Gemini API call: {str(e)}")
         return json.dumps({
             "percentage_match": 0.0,
             "missing_keywords": [{"keyword": f"Gemini API call failed: {str(e)}", "type": "system", "importance": "critical"}],
@@ -241,27 +241,30 @@ def parse_resume(resume_text):
     lines = [line.strip() for line in resume_text.split('\n') if line.strip()]
     logger.debug(f"Total {len(lines)} non-empty lines after initial split.")
 
+    # Iterate through lines to identify sections
     for line_idx, line in enumerate(lines):
         line_doc = nlp(line)
-        line_matches = matcher(line_doc)
+        line_matches = matcher(line_doc) # Use section matcher
 
         found_section_in_line = False
         for match_id, start, end in line_matches:
-            section_text = line_doc[start:end].text.lower()
-            if any(s in section_text for s in ["summary", "about me", "profile"]):
+            # Check for specific section types based on matched text
+            section_text_lower = line_doc[start:end].text.lower()
+            
+            if any(s in section_text_lower for s in ["summary", "about me", "profile"]):
                 current_section = "summary"
-            elif any(s in section_text for s in ["skills", "technical skills", "core competencies", "extracurricular skills", "technologies", "tech skills"]):
+            elif any(s in section_text_lower for s in ["skills", "technical skills", "core competencies", "extracurricular skills", "technologies", "tech skills"]):
                 current_section = "skills"
-            elif "experience" in section_text:
+            elif "experience" in section_text_lower:
                 current_section = "experience"
-            elif "education" in section_text:
+            elif "education" in section_text_lower:
                 current_section = "education"
-            elif "projects" in section_text:
+            elif "projects" in section_text_lower:
                 current_section = "projects"
             elif any(s in section_text for s in ["achievements", "certifications", "additional information", "awards", "languages"]):
                 current_section = "additional_info"
             else:
-                continue
+                continue # If it's a match but not one of our main sections, ignore for section parsing
             found_section_in_line = True
             logger.debug(f"L{line_idx}: Detected section: '{section_text}' -> assigned to {current_section}")
             break
@@ -360,6 +363,7 @@ def parse_resume(resume_text):
     logger.debug(f"--- Finished parse_resume ---")
     logger.debug(f"Parsed resume FINAL technical skills: {parsed_data['skills']}")
     logger.debug(f"Parsed resume FINAL soft skills: {parsed_data['soft_skills']}")
+    logger.debug(f"Parsed resume FINAL sections: {parsed_data['sections'].keys()}")
     return parsed_data
 
 # Rest of your main.py code (get_gemini_response_cache_key, cache_gemini_response, etc.)
@@ -412,13 +416,13 @@ def process_resume(resume_file, job_description, input_prompt):
 
         # Check for cached parsed resume
         parsed_resume_cache_key = get_resume_cache_key(resume_text)
-        parsed_resume = load_cached_resume(parsed_resume_cache_key)
+        parsed_resume = load_cached_parsed_resume(parsed_resume_cache_key)
 
         if parsed_resume:
             logger.debug(f"Loaded parsed resume from cache for {resume_file.filename}.")
         else:
             parsed_resume = parse_resume(resume_text)
-            cache_resume(parsed_resume, parsed_resume_cache_key)
+            cache_parsed_resume(parsed_resume, parsed_resume_cache_key)
             logger.debug(f"Parsed and cached resume for {resume_file.filename}.")
 
         # Check for cached Gemini API response
@@ -506,28 +510,41 @@ def process_resume(resume_file, job_description, input_prompt):
             "missing_keywords": [{"keyword": "Processing Error", "type": "system", "importance": "critical"}],
             "recommendations": [f"Critical error processing {resume_file.filename}: {str(e)}", "Please check server logs for details."]
         }
-        return None, 0.0, error_recommendation_data, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
+        return None, 0.0, error_recommendation_data, {"skills": [], "soft_skills": [], "raw_text": "", "sections": {}}, ""
 
 @app.route("/")
 def index():
     return render_template('main.html')
 
 @app.route("/matchresume")
-def matchr():
-    return render_template('home.html')
+def matchresume(): # Now this is the form page
+    # Pass job_description if it was sent back from a failed form submission
+    job_description_text = request.args.get('job_description', '')
+    return render_template('home.html', job_description=job_description_text)
+
 
 @app.route('/matcher', methods=['POST'])
 def matcher():
     if request.method == 'POST':
+        # Add a breakpoint here if running in an IDE, or use logging extensively
         job_description = request.form.get('job_description', '').strip()
         resume_files = request.files.getlist('resumes')
 
-        logger.info(f"Received {len(resume_files)} resume files for matching.")
-        logger.debug(f"Job description: {job_description[:200]}...")
+        logger.info(f"--- Form Submission Received ---")
+        logger.info(f"Number of resume files received: {len(resume_files)}")
+        logger.info(f"Job description length: {len(job_description)} chars (empty if 0)")
+        logger.debug(f"Job description content (first 200 chars): '{job_description[:200]}'")
+        
+        if not job_description:
+            logger.warning("Job description is empty.")
+        if not resume_files:
+            logger.warning("No resume files were uploaded.")
 
+        # --- Initial Validation ---
         if not resume_files or not job_description:
-            logger.warning("No resumes or job description provided by user.")
-            return render_template('home.html', message="Please upload resumes and enter a job description.")
+            logger.warning("Returning to home.html due to missing job description or resumes.")
+            # Pass job_description back so user doesn't lose their input
+            return render_template('home.html', message="Please upload resumes and enter a job description.", job_description=job_description)
 
         processed_results = [] # Store all results here, then sort
 
@@ -548,10 +565,10 @@ def matcher():
 
         Return the response in JSON format. Ensure all keys and string values are properly quoted.
         ```json
-        {
+        {{
           "percentage_match": <number between 0 and 100, float, precise to one decimal place, e.g., 82.5>,
           "missing_keywords": [
-            {"keyword": "<string>", "type": "technical/soft/general", "importance": "critical/important/optional"},
+            {{"keyword": "<string>", "type": "technical/soft/general", "importance": "critical/important/optional"}},
             ...
           ],
           "recommendations": [<string>, ...]
@@ -565,46 +582,64 @@ def matcher():
                 executor.submit(process_resume, resume_file, job_description, input_prompt): resume_file
                 for resume_file in resume_files
             }
+            
+            # Collect results as they complete
             for future in concurrent.futures.as_completed(future_to_resume_file):
                 original_file = future_to_resume_file[future]
-                filename, percentage, recommendation_data, parsed_resume, resume_text = future.result()
-
-                if filename:
+                try:
+                    filename, percentage, recommendation_data, parsed_resume, resume_text = future.result()
+                    if filename: # Check if processing was successful (filename is not None)
+                        processed_results.append({
+                            "filename": filename,
+                            "score": percentage, # Initial score from Gemini
+                            "recommendation_data": recommendation_data,
+                            "parsed_resume": parsed_resume,
+                            "resume_text": resume_text
+                        })
+                    else:
+                        logger.error(f"Processing of {original_file.filename} failed. Error data: {recommendation_data}")
+                        # Append a "failed" entry to show in results if needed, or skip
+                        processed_results.append({
+                            "filename": original_file.filename or "Unnamed_Resume_Failed",
+                            "score": 0.0, # Indicate failure with 0 score
+                            "recommendation_data": recommendation_data, # Contains error messages
+                            "parsed_resume": {"skills": [], "soft_skills": [], "raw_text": "", "sections": {}},
+                            "resume_text": ""
+                        })
+                except Exception as e:
+                    logger.exception(f"Unhandled exception during concurrent processing of {original_file.filename}:")
+                    # Append a "critically failed" entry
                     processed_results.append({
-                        "filename": filename,
-                        "percentage_gemini": percentage,
-                        "recommendation_data": recommendation_data,
-                        "parsed_resume": parsed_resume,
-                        "resume_text": resume_text
-                    })
-                else:
-                    logger.error(f"Failed to process {original_file.filename}. Skipping this resume.")
-                    processed_results.append({
-                        "filename": original_file.filename or "Unnamed_Resume",
-                        "percentage_gemini": 0.0,
-                        "recommendation_data": recommendation_data,
-                        "parsed_resume": {"skills": [], "soft_skills": [], "raw_text": ""},
+                        "filename": original_file.filename or "Unnamed_Resume_Critically_Failed",
+                        "score": 0.0,
+                        "recommendation_data": {
+                            "percentage_match": 0.0,
+                            "missing_keywords": [{"keyword": "System Error", "type": "system", "importance": "critical"}],
+                            "recommendations": [f"Critical processing error for {original_file.filename}: {str(e)}", "Please check server logs."],
+                            "quality_feedback": {"system_error": [f"Critical system error: {str(e)}. Consult server logs."]}
+                        },
+                        "parsed_resume": {"skills": [], "soft_skills": [], "raw_text": "", "sections": {}},
                         "resume_text": ""
                     })
 
-        if not processed_results or all(res["percentage_gemini"] == 0.0 and not res["resume_text"].strip() for res in processed_results):
-            logger.warning("No valid resumes processed after all attempts.")
-            return render_template('home.html', message="No valid resumes processed. Please check file formats or content.")
+        # Final check after all processing attempts
+        if not processed_results or all(res["score"] == 0.0 and not res["resume_text"].strip() for res in processed_results):
+            logger.warning("No valid resumes processed successfully after all attempts. Returning to home.html.")
+            return render_template('home.html', message="No valid resumes could be processed. Ensure files are readable and contain text.", job_description=job_description)
 
         # Prepare texts for TF-IDF vectorization
         all_texts_for_tfidf_input = []
-        original_indices_map = []
+        original_indices_map = [] 
 
+        job_desc_tfidf_idx = -1
         if job_description.strip():
             all_texts_for_tfidf_input.append(job_description)
             job_desc_tfidf_idx = 0
-        else:
-            job_desc_tfidf_idx = -1
 
         for i, res in enumerate(processed_results):
-            if res["resume_text"].strip():
+            if res["resume_text"].strip(): # Only include valid extracted resume texts for TF-IDF
                 all_texts_for_tfidf_input.append(res["resume_text"])
-                original_indices_map.append(i)
+                original_indices_map.append(i) 
 
         tfidf_scores = [0.0] * len(processed_results)
 
@@ -632,7 +667,7 @@ def matcher():
                 else:
                     logger.warning("TF-IDF vectorization resulted in empty features or job description not available for vectorization.")
             else:
-                logger.warning("Insufficient valid texts for TF-IDF vectorization (need job description and at least one resume).")
+                logger.warning("Insufficient valid texts for TF-IDF vectorization (need job description and at least one resume). Skipping TF-IDF.")
         except Exception as e:
             logger.error(f"Error during TF-IDF vectorization: {str(e)}")
 
@@ -642,35 +677,39 @@ def matcher():
         TFIDF_WEIGHT = 0.3
 
         for i, res in enumerate(processed_results):
-            gemini_score = res["percentage_gemini"]
+            gemini_score = res["score"] # This is the percentage from Gemini
             tfidf_score = tfidf_scores[i]
 
             combined_score = 0.0
             if gemini_score > 0.0 and tfidf_score > 0.0:
                 combined_score = (gemini_score * GEMINI_WEIGHT) + (tfidf_score * TFIDF_WEIGHT)
-            elif gemini_score > 0.0:
+            elif gemini_score > 0.0: 
                 combined_score = gemini_score
-            elif tfidf_score > 0.0:
+            elif tfidf_score > 0.0: 
                 combined_score = tfidf_score
 
             final_resumes_for_display.append({
                 "filename": res["filename"],
-                "score": round(combined_score, 2),
+                "score": round(combined_score, 2), # This is the final combined score
                 "skills": res["parsed_resume"]["skills"],
                 "soft_skills": res["parsed_resume"]["soft_skills"],
-                "recommendation_data": res["recommendation_data"]
+                "recommendation_data": res["recommendation_data"] 
             })
 
-        top_resumes = sorted(final_resumes_for_display, key=lambda x: x['score'], reverse=True)[:5]
+        top_resumes = sorted(final_resumes_for_display, key=lambda x: x['score'], reverse=True)
 
         logger.info(f"Top matching resumes calculated: {[r['filename'] for r in top_resumes]}")
+        
+        # --- Final Render to ats.html ---
         return render_template(
             'ats.html',
             job_description=job_description,
-            top_resumes=top_resumes
+            top_resumes=top_resumes,
+            current_year=current_year 
         )
 
-    return render_template('home.html')
+    # This part should ideally not be reached for POST requests, but is a fallback for GET requests to /matcher
+    return render_template('home.html', message="Invalid request method. Please use the form to submit.")
 
 
 if __name__ == '__main__':
@@ -681,4 +720,4 @@ if __name__ == '__main__':
         os.makedirs(app.config['CACHE_FOLDER'])
         logger.info(f"Created cache folder: {app.config['CACHE_FOLDER']}")
 
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5000)
