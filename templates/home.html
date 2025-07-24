@@ -4,22 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Matcher - JobSyncPro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
 </head>
 <body>
-    <!-- Background Decorations -->
     <div class="bg-decoration"></div>
     <div class="bg-decoration"></div>
     <div class="bg-decoration"></div>
 
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="logo">JobSyncPro</a>
+            <a href="{{ url_for('index') }}" class="logo">JobSyncPro</a>
             <ul class="nav-links">
-                <li><a href="{{ url_for('matchresume') }}"">Home</a></li>
-                <li><a href="https://github.com/yashvisharma1204/JobSyncPro">Documentation</a></li>
+                <li><a href="{{ url_for('index') }}">Home</a></li> 
+                <li><a href="https://github.com/yashvisharma1204/JobSyncPro" target="_blank">Documentation</a></li>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#process">Process</a></li>
             </ul>
@@ -36,7 +34,7 @@
                 <h2><i class="fas fa-search"></i> AI-Powered Resume Matcher</h2>
             </div>
             <div class="card-body">
-                <form method="POST" action="/matcher" enctype="multipart/form-data">
+                <form id="matcherForm" method="POST" action="/matcher" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="job_description" class="form-label">
                             <i class="fas fa-file-text"></i> Job Description
@@ -49,7 +47,7 @@
                             placeholder="Enter the job description here..." 
                             required 
                             aria-describedby="jobDescriptionHelp"
-                        ></textarea>
+                        >{{ job_description or '' }}</textarea>
                         <small id="jobDescriptionHelp" class="form-text">
                             Provide a detailed job description for accurate resume matching.
                         </small>
@@ -85,99 +83,157 @@
                 
                 {% if message %}
                     <div class="alert" role="alert">
-                        <h4><i class="fas fa-chart-line"></i> {{ message }}</h4>
-                        {% for resume in top_resumes %}
-                            <div class="resume-card">
-                                <h5>
-                                    <i class="fas fa-file-alt"></i> 
-                                    {{ resume.filename }} 
-                                    <span style="color: #10b981;">(Match Score: {{ resume.score }}%)</span>
-                                </h5>
-                                
-                                <div class="section-header">
-                                    <i class="fas fa-code"></i> Technical Skills
-                                </div>
-                                <ul>
-                                    {% if resume.skills %}
-                                        {% for skill in resume.skills %}
-                                            <li>{{ skill }}</li>
-                                        {% endfor %}
-                                    {% else %}
-                                        <li style="color: #64748b;">No technical skills identified</li>
-                                    {% endif %}
-                                </ul>
-                                
-                                <div class="section-header">
-                                    <i class="fas fa-heart"></i> Soft Skills
-                                </div>
-                                <ul>
-                                    {% if resume.soft_skills %}
-                                        {% for skill in resume.soft_skills %}
-                                            <li>{{ skill }}</li>
-                                        {% endfor %}
-                                    {% else %}
-                                        <li style="color: #64748b;">No soft skills identified</li>
-                                    {% endif %}
-                                </ul>
-                                
-                                <div class="section-header">
-                                    <i class="fas fa-lightbulb"></i> Recommendations
-                                </div>
-                                <div class="recommendations">
-                                    {{ resume.recommendations | safe }}
-                                </div>
-                            </div>
-                        {% endfor %}
+                        <h4><i class="fas fa-info-circle"></i> {{ message }}</h4>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
             <p>&copy; 2025 JobSyncPro. Advanced Resume Matching Platform.</p>
     </footer>
 
     <script>
-        document.getElementById('resumes').addEventListener('change', function(e) {
-            const fileInputLabel = document.querySelector('.file-input-label');
-            const fileCount = e.target.files.length;
+        const dropArea = document.querySelector('.file-input-wrapper'); // Changed to target the wrapper for drag/drop
+        const fileInput = document.getElementById('resumes');
+        const fileInputLabel = document.querySelector('.file-input-label');
+        const matcherForm = document.getElementById('matcherForm'); // Get the form
+        
+        let filesList = new DataTransfer(); // Use DataTransfer object to manage files
+
+        // Event listener for click on the wrapper to trigger file input
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Drag and drop events
+        dropArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropArea.classList.add('is-dragover'); // Add a class for visual feedback
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('is-dragover');
+        });
+
+        dropArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropArea.classList.remove('is-dragover');
+            handleFiles(event.dataTransfer.files);
+        });
+
+        // File input change event
+        fileInput.addEventListener('change', (event) => {
+            handleFiles(event.target.files);
+        });
+
+        // Form submission event listener to ensure files are set
+        matcherForm.addEventListener('submit', (event) => {
+            fileInput.files = filesList.files; // Ensure the native input's files are updated on submit
+        });
+
+        function handleFiles(files) {
+            for (const file of files) {
+                // Basic type checking (can be expanded)
+                const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+                if (allowedTypes.includes(file.type)) {
+                    // Check for duplicates by name and size
+                    let isDuplicate = false;
+                    for (let i = 0; i < filesList.files.length; i++) {
+                        if (filesList.files[i].name === file.name && filesList.files[i].size === file.size) {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (!isDuplicate) {
+                        filesList.items.add(file); // Add to DataTransfer object
+                    } else {
+                        alert(`File "${file.name}" is already added.`);
+                    }
+                } else {
+                    alert(`Unsupported file type: ${file.name}. Please upload PDF, DOCX, or TXT.`);
+                }
+            }
+            updateFileListDisplay(); // Update the visual display of files
+        }
+
+        function updateFileListDisplay() {
+            fileInputLabel.innerHTML = ''; // Clear previous display
             
-            if (fileCount > 0) {
-                fileInputLabel.innerHTML = `
+            if (filesList.files.length > 0) {
+                const ul = document.createElement('ul');
+                ul.style.listStyle = 'none';
+                ul.style.padding = '0';
+                ul.style.marginTop = '10px';
+                ul.style.color = '#cbd5e1';
+                ul.style.fontSize = '0.9rem';
+
+                Array.from(filesList.files).forEach(file => {
+                    const li = document.createElement('li');
+                    li.style.display = 'flex';
+                    li.style.alignItems = 'center';
+                    li.style.gap = '5px';
+                    li.style.marginBottom = '5px';
+                    li.innerHTML = `
+                        <i class="fas fa-file"></i>
+                        <span>${file.name}</span>
+                        <i class="fas fa-times-circle remove-file" data-filename="${file.name}" style="cursor:pointer; color: #f87171;"></i>
+                    `;
+                    ul.appendChild(li);
+
+                    li.querySelector('.remove-file').addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent triggering the dropArea click listener
+                        removeFile(event.target.dataset.filename);
+                    });
+                });
+                fileInputLabel.appendChild(ul);
+                
+                // Update the main label text
+                fileInputLabel.insertAdjacentHTML('afterbegin', `
                     <i class="fas fa-file-check"></i> 
-                    ${fileCount} file${fileCount > 1 ? 's' : ''} selected
-                `;
+                    ${filesList.files.length} file${filesList.files.length > 1 ? 's' : ''} selected
+                `);
+
             } else {
+                // If no files, restore default label content
                 fileInputLabel.innerHTML = `
                     <i class="fas fa-cloud-upload-alt"></i> 
                     Drag and drop resumes here or click to upload (PDF, DOCX, TXT)
                 `;
             }
-        });
+        }
 
-        // Add smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
+        function removeFile(filenameToRemove) {
+            const newFilesList = new DataTransfer();
+            for (let i = 0; i < filesList.files.length; i++) {
+                if (filesList.files[i].name !== filenameToRemove) {
+                    newFilesList.items.add(filesList.files[i]);
                 }
-            });
-        });
-
-        // Add navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.style.background = 'rgba(15, 23, 42, 0.95)';
-            } else {
-                navbar.style.background = 'rgba(15, 23, 42, 0.85)';
             }
+            filesList = newFilesList; // Update the DataTransfer object
+            updateFileListDisplay(); // Re-render the file list
+        }
+
+        // Add CSS for dragover visual feedback
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .file-input-wrapper.is-dragover {
+                border-color: #60a5fa !important;
+                background-color: rgba(59, 130, 246, 0.2) !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+
+        // Pre-fill job description if it came from the server (e.g., after an error message)
+        window.addEventListener('load', () => {
+            const jd = `{{ job_description | default('') | tojson }}`; // Use tojson for safety
+            if (jd && jd !== '""') { // Check if jd is not empty or just ""
+                document.getElementById('job_description').value = JSON.parse(jd);
+            }
+            updateFileListDisplay(); // Call this on load to display any pre-existing files if needed (unlikely in this setup)
         });
     </script>
 </body>

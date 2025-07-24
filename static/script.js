@@ -1,5 +1,5 @@
 
-        // Smooth scrolling
+       
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -13,7 +13,7 @@
             });
         });
 
-        // Navbar scroll effect
+    
         window.addEventListener('scroll', () => {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
@@ -25,7 +25,7 @@
             }
         });
 
-        // Enhanced hover effects
+       
         document.querySelectorAll('.bento-item, .process-card, .spec-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-4px)';
