@@ -13,6 +13,9 @@ import json
 import concurrent.futures
 import pickle
 import hashlib
+from datetime import datetime
+
+current_year = datetime.now().year
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'Uploads/'
@@ -262,12 +265,12 @@ def parse_resume(resume_text):
                 current_section = "education"
             elif "projects" in section_text_lower:
                 current_section = "projects"
-            elif any(s in section_text for s in ["achievements", "certifications", "additional information", "awards", "languages"]):
+            elif any(s in section_text_lower for s in ["achievements", "certifications", "additional information", "awards", "languages"]):
                 current_section = "additional_info"
             else:
                 continue # If it's a match but not one of our main sections, ignore for section parsing
             found_section_in_line = True
-            logger.debug(f"L{line_idx}: Detected section: '{section_text}' -> assigned to {current_section}")
+            logger.debug(f"L{line_idx}: Detected section: '{section_text_lower}' -> assigned to {current_section}")
             break
 
         if not found_section_in_line and current_section:
@@ -417,13 +420,13 @@ def process_resume(resume_file, job_description, input_prompt):
 
         # Check for cached parsed resume
         parsed_resume_cache_key = get_resume_cache_key(resume_text)
-        parsed_resume = load_cached_parsed_resume(parsed_resume_cache_key)
+        parsed_resume = load_cached_resume(parsed_resume_cache_key)
 
         if parsed_resume:
             logger.debug(f"Loaded parsed resume from cache for {resume_file.filename}.")
         else:
             parsed_resume = parse_resume(resume_text)
-            cache_parsed_resume(parsed_resume, parsed_resume_cache_key)
+            cache_resume(parsed_resume, parsed_resume_cache_key)
             logger.debug(f"Parsed and cached resume for {resume_file.filename}.")
 
         # Check for cached Gemini API response
