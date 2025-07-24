@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template 
+from flask import Flask, request, render_template
 import os
 import docx2txt
 import PyPDF2
@@ -34,14 +34,14 @@ if not GEMINI_API_KEY:
 
 else:
     genai.configure(api_key=GEMINI_API_KEY)
-    print(f"DEBUG: GEMINI_API_KEY loaded into app: '{GEMINI_API_KEY}'") 
+    print(f"DEBUG: GEMINI_API_KEY loaded into app: '{GEMINI_API_KEY}'")
 
 try:
     nlp = spacy.load("en_core_web_sm")
     logger.info("spaCy model 'en_core_web_sm' loaded successfully.")
 except Exception as e:
     logger.error(f"Failed to load spaCy model: {str(e)}. Please run 'python -m spacy download en_core_web_sm'")
-    raise 
+    raise
 SOFT_SKILLS = {
     "communication", "teamwork", "leadership", "problem-solving", "adaptability",
     "time management", "collaboration", "creativity", "work ethic", "interpersonal skills",
@@ -67,7 +67,7 @@ TECHNICAL_SKILLS = {
     "apache spark",
     "linear regression",
     "decision tree",
-    "aws lambda", 
+    "aws lambda",
     "aws glue",   # From AI-FRAUD DETECTION SYSTEM
     "aws iam",    # From AI-FRAUD DETECTION SYSTEM
     "next.js",    # From WORK EXPERIENCE
@@ -176,7 +176,8 @@ def get_gemini_response(job_description, resume_text, prompt):
         return json.dumps({
             "percentage_match": 0.0,
             "missing_keywords": [{"keyword": "Gemini API key not configured.", "type": "system", "importance": "critical"}],
-            "recommendations": ["Set GEMINI_API_KEY environment variable."]
+            "recommendations": ["Set GEMINI_API_KEY environment variable."],
+            "quality_feedback": {}
         })
 
     # Add generation_config to ensure deterministic output
@@ -187,7 +188,7 @@ def get_gemini_response(job_description, resume_text, prompt):
     }
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash') # Using flash as specified in original code
+        model = genai.GenerativeModel('gemini-2.0-flash') # Using flash as specified in original code
 
         input_text = f"Job Description:\n{job_description}\n\nResume:\n{resume_text}"
 
@@ -204,7 +205,8 @@ def get_gemini_response(job_description, resume_text, prompt):
         return json.dumps({
             "percentage_match": 0.0,
             "missing_keywords": [{"keyword": f"Gemini API call failed: {str(e)}", "type": "system", "importance": "critical"}],
-            "recommendations": ["Check Gemini API key, network, and prompt structure."]
+            "recommendations": ["Check Gemini API key, network, and prompt structure."],
+            "quality_feedback": {}
         })
 
 
@@ -237,7 +239,7 @@ def parse_resume(resume_text):
     # Add soft skill phrases to PhraseMatcher once
     soft_skill_phrases = [nlp.make_doc(phrase) for phrase in SOFT_SKILLS]
     # REMOVED overwrite=True from here
-    phrase_matcher.add("SOFT_SKILLS", soft_skill_phrases) 
+    phrase_matcher.add("SOFT_SKILLS", soft_skill_phrases)
 
     # Find section headings and associate content
     sections = {
@@ -258,7 +260,7 @@ def parse_resume(resume_text):
         for match_id, start, end in line_matches:
             # Check for specific section types based on matched text
             section_text_lower = line_doc[start:end].text.lower()
-            
+
             if any(s in section_text_lower for s in ["summary", "about me", "profile"]):
                 current_section = "summary"
             elif any(s in section_text_lower for s in ["skills", "technical skills", "core competencies", "extracurricular skills", "technologies", "tech skills"]):
@@ -309,7 +311,7 @@ def parse_resume(resume_text):
             if matched_skill not in skills:
                 skills.append(matched_skill)
                 logger.debug(f"Found exact tech skill in dedicated section: '{matched_skill}'")
-            
+
         # Additionally, split by common delimiters to catch single words that might not be phrases
         # (e.g., if "Java" is listed with no space/punctuation after it, sometimes PhraseMatcher needs context)
         words_in_skills_section = re.findall(r'\b[a-zA-Z0-9+#.-]+\b', skills_text_from_section) # More robust regex for words
@@ -373,7 +375,7 @@ def parse_resume(resume_text):
     logger.debug(f"Parsed resume FINAL technical skills: {parsed_data['skills']}")
     logger.debug(f"Parsed resume FINAL soft skills: {parsed_data['soft_skills']}")
     logger.debug(f"Parsed resume FINAL sections: {parsed_data['sections'].keys()}")
-    
+
     return parsed_data
 
 # Rest of your main.py code (get_gemini_response_cache_key, cache_gemini_response, etc.)
@@ -411,7 +413,7 @@ def process_resume(resume_file, job_description, input_prompt):
     """Process a single resume file."""
     if not resume_file or not resume_file.filename:
         logger.warning("Empty or no resume file received in process_resume.")
-        return None, 0.0, {"percentage_match": 0.0, "missing_keywords": [{"keyword": "No valid resume file uploaded.", "type": "system", "importance": "critical"}], "recommendations": []}, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
+        return None, 0.0, {"percentage_match": 0.0, "missing_keywords": [{"keyword": "No valid resume file uploaded.", "type": "system", "importance": "critical"}], "recommendations": [], "quality_feedback": {}}, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
 
     filename = os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename)
     try:
@@ -422,7 +424,7 @@ def process_resume(resume_file, job_description, input_prompt):
         resume_text = extract_text(filename)
         if not resume_text.strip():
             logger.error(f"Failed to extract text from {filename} (empty content).")
-            return None, 0.0, {"percentage_match": 0.0, "missing_keywords": [{"keyword": "Failed to extract readable text from resume.", "type": "system", "importance": "critical"}], "recommendations": []}, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
+            return None, 0.0, {"percentage_match": 0.0, "missing_keywords": [{"keyword": "Failed to extract readable text from resume.", "type": "system", "importance": "critical"}], "recommendations": [], "quality_feedback": {}}, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
 
         # Check for cached parsed resume
         parsed_resume_cache_key = get_resume_cache_key(resume_text)
@@ -451,16 +453,22 @@ def process_resume(resume_file, job_description, input_prompt):
         recommendation_data = { # Store structured data
             "percentage_match": 0.0,
             "missing_keywords": [],
-            "recommendations": []
+            "recommendations": [],
+            "quality_feedback": {}
         }
 
         try:
-            response_json = json.loads(gemini_response_raw)
+            # Clean the raw response before parsing
+            cleaned_response_raw = re.sub(r'^```json\s*|\s*```$', '', gemini_response_raw.strip())
+            response_json = json.loads(cleaned_response_raw)
+            
             percentage = float(response_json.get("percentage_match", 0.0))
             recommendation_data["percentage_match"] = percentage
             recommendation_data["missing_keywords"] = response_json.get("missing_keywords", [])
             recommendation_data["recommendations"] = response_json.get("recommendations", [])
+            recommendation_data["quality_feedback"] = response_json.get("quality_feedback", {})
             logger.debug("Successfully parsed Gemini JSON response.")
+
         except json.JSONDecodeError as e:
             logger.error(f"JSON parsing error for Gemini response: {e}. Raw response: {gemini_response_raw[:500]}...")
             # Fallback regex for percentage if full JSON parsing fails
@@ -474,24 +482,23 @@ def process_resume(resume_file, job_description, input_prompt):
                 recommendation_data["recommendations"].append(f"Error: Gemini response JSON malformed, and percentage not found via regex. Raw response saved below.")
 
             # Attempt to extract missing keywords from raw text if JSON failed
-            missing_kw_match = re.search(r'"missing_keywords"\s*:\s*\[(.*?)\]', gemini_response_raw, re.DOTALL) # re.DOTALL to match across lines
+            missing_kw_match = re.search(r'"missing_keywords"\s*:\s*(\[.*?\])', gemini_response_raw, re.DOTALL)
             if missing_kw_match:
                 try:
-                    keywords_str = missing_kw_match.group(1).strip()
-                    temp_list = []
-                    try: # Try to parse as valid JSON list of dicts first
-                        temp_list = json.loads(f"[{keywords_str}]")
-                        if all(isinstance(item, dict) and "keyword" in item for item in temp_list):
-                            recommendation_data["missing_keywords"] = temp_list
-                        else: # If not proper dicts, fall back to simple string parsing
-                            raise ValueError("Not a list of keyword dicts")
-                    except (json.JSONDecodeError, ValueError):
-                        if keywords_str: # Fallback to simple comma-separated string parsing
-                            missing_keywords_list = [kw.strip().strip('"') for kw in re.split(r',\s*(?="|\b)', keywords_str) if kw.strip()]
-                            recommendation_data["missing_keywords"] = [{"keyword": k, "type": "unknown", "importance": "unknown"} for k in missing_keywords_list]
-                except Exception as ex:
-                    logger.debug(f"Failed to extract keywords from malformed JSON string '{keywords_str}' using fallback: {ex}")
-                    pass # Silently fail if keyword extraction from malformed string also fails
+                    keywords_json_str = missing_kw_match.group(1)
+                    recommendation_data["missing_keywords"] = json.loads(keywords_json_str)
+                except json.JSONDecodeError:
+                     logger.error(f"Could not parse missing_keywords from malformed JSON.")
+            
+            # Attempt to extract quality feedback
+            quality_match = re.search(r'"quality_feedback"\s*:\s*(\{.*?\})', gemini_response_raw, re.DOTALL)
+            if quality_match:
+                try:
+                    quality_json_str = quality_match.group(1)
+                    recommendation_data["quality_feedback"] = json.loads(quality_json_str)
+                except json.JSONDecodeError:
+                    logger.error("Could not parse quality_feedback from malformed JSON.")
+
 
             # Always add the raw (potentially malformed) response for debugging
             recommendation_data["recommendations"].append(f"Full Raw Gemini Response (for debugging): {gemini_response_raw}")
@@ -518,7 +525,8 @@ def process_resume(resume_file, job_description, input_prompt):
         error_recommendation_data = {
             "percentage_match": 0.0,
             "missing_keywords": [{"keyword": "Processing Error", "type": "system", "importance": "critical"}],
-            "recommendations": [f"Critical error processing {resume_file.filename}: {str(e)}", "Please check server logs for details."]
+            "recommendations": [f"Critical error processing {resume_file.filename}: {str(e)}", "Please check server logs for details."],
+            "quality_feedback": {}
         }
         return None, 0.0, error_recommendation_data, {"skills": [], "soft_skills": [], "raw_text": "", "sections": {}}, ""
 
@@ -545,7 +553,7 @@ def matcher():
         logger.info(f"Number of resume files received: {len(resume_files)}")
         logger.info(f"Job description length: {len(job_description)} chars (empty if 0)")
         logger.debug(f"Job description content (first 200 chars): '{job_description[:200]}'")
-        
+
         if not job_description:
             logger.warning("Job description is empty.")
         if not resume_files:
@@ -582,8 +590,15 @@ def matcher():
             {{"keyword": "<string>", "type": "technical/soft/general", "importance": "critical/important/optional"}},
             ...
           ],
-          "recommendations": [<string>, ...]
-        }
+          "recommendations": [<string>, ...],
+          "quality_feedback": {{
+            "grammar_issues": [<string>, ...],
+            "structural_suggestions": [<string>, ...],
+            "quantifiable_achievements": [<string>, ...],
+            "action_verbs": [<string>, ...],
+            "conciseness_suggestions": [<string>, ...]
+          }}
+        }}
         ```
         """
 
@@ -593,7 +608,7 @@ def matcher():
                 executor.submit(process_resume, resume_file, job_description, input_prompt): resume_file
                 for resume_file in resume_files
             }
-            
+
             # Collect results as they complete
             for future in concurrent.futures.as_completed(future_to_resume_file):
                 original_file = future_to_resume_file[future]
@@ -640,7 +655,7 @@ def matcher():
 
         # Prepare texts for TF-IDF vectorization
         all_texts_for_tfidf_input = []
-        original_indices_map = [] 
+        original_indices_map = []
 
         job_desc_tfidf_idx = -1
         if job_description.strip():
@@ -650,7 +665,7 @@ def matcher():
         for i, res in enumerate(processed_results):
             if res["resume_text"].strip(): # Only include valid extracted resume texts for TF-IDF
                 all_texts_for_tfidf_input.append(res["resume_text"])
-                original_indices_map.append(i) 
+                original_indices_map.append(i)
 
         tfidf_scores = [0.0] * len(processed_results)
 
@@ -694,9 +709,9 @@ def matcher():
             combined_score = 0.0
             if gemini_score > 0.0 and tfidf_score > 0.0:
                 combined_score = (gemini_score * GEMINI_WEIGHT) + (tfidf_score * TFIDF_WEIGHT)
-            elif gemini_score > 0.0: 
+            elif gemini_score > 0.0:
                 combined_score = gemini_score
-            elif tfidf_score > 0.0: 
+            elif tfidf_score > 0.0:
                 combined_score = tfidf_score
 
             final_resumes_for_display.append({
@@ -704,19 +719,19 @@ def matcher():
                 "score": round(combined_score, 2), # This is the final combined score
                 "skills": res["parsed_resume"]["skills"],
                 "soft_skills": res["parsed_resume"]["soft_skills"],
-                "recommendation_data": res["recommendation_data"] 
+                "recommendation_data": res["recommendation_data"]
             })
 
         top_resumes = sorted(final_resumes_for_display, key=lambda x: x['score'], reverse=True)
 
         logger.info(f"Top matching resumes calculated: {[r['filename'] for r in top_resumes]}")
-        
+
         # --- Final Render to ats.html ---
         return render_template(
             'ats.html',
             job_description=job_description,
             top_resumes=top_resumes,
-            current_year=current_year 
+            current_year=current_year
         )
 
     # This part should ideally not be reached for POST requests, but is a fallback for GET requests to /matcher
