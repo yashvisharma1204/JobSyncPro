@@ -180,11 +180,8 @@ def get_gemini_response(job_description, resume_text, prompt):
     }
 
     try:
-<<<<<<< HEAD
-        model = genai.GenerativeModel('gemini-2.0-flash') 
-=======
         model = genai.GenerativeModel('gemini-2.0-flash') # Using flash as specified in original code
->>>>>>> d8296115021b4b54666ed7c580c669f9c2f0fc08
+
         input_text = f"Job Description:\n{job_description}\n\nResume:\n{resume_text}"
 
         # Use generation_config for more deterministic output
