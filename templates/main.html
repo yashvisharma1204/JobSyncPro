@@ -7,13 +7,18 @@
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://kit.fontawesome.com/a33776bbdd.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://kit.fontawesome.com/a33776bbdd.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <a href="{{ url_for('index') }}" class="logo">JobSyncPro</a>
+            <a href="{{ url_for('index') }}" class="logo">JobSyncPro</a>
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
+                <li><a href="https://github.com/yashvisharma1204/JobSyncPro" target="_blank">Documentation</a></li>
                 <li><a href="https://github.com/yashvisharma1204/JobSyncPro" target="_blank">Documentation</a></li>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#process">Process</a></li>
@@ -21,16 +26,18 @@
             <div class="auth-buttons">
                 <a href="#" class="btn btn-outline">Login</a>
                 <a href="#" class="btn btn-primary"></i> Sign Up</a>
+                <a href="#" class="btn btn-primary"></i> Sign Up</a>
             </div>
         </div>
     </nav>
+
 
     <section class="hero" id="home">
         <div class="hero-content">
             <h1>AI-Powered Resume Matching Platform</h1>
             <p>Upload job descriptions and analyze up to 5 resumes simultaneously. Get instant matching scores, gap analysis, and ranked results with detailed recommendations.</p>
             <div class="hero-cta">
-                <a href="{{ url_for('matchresume') }}" class="btn btn-primary">Start Analysis →</a>
+                <a href="{{ url_for('matchr') }}" class="btn btn-primary">Start Analysis →</a>
                 <a href="https://github.com/yashvisharma1204/JobSyncPro"} class="btn btn-secondary"><i class="fab fa-github fa-lg"></i> Contribute</a>
                 
             </div>
@@ -65,6 +72,7 @@
                 <p class="section-subtitle">Comprehensive resume analysis with AI-powered matching algorithms</p>
             </div>
 
+
             <div class="bento-grid">
                 <div class="bento-item bento-large">
                     <div class="feature-icon">🎯</div>
@@ -77,11 +85,13 @@
                     <p>Comprehensive scoring breakdown with skill gaps, experience analysis, and qualification matching.</p>
                 </div>
 
+
                 <div class="bento-item bento-small">
                     <div class="feature-icon">📄</div>
                     <h3>Multi File Processing</h3>
                     <p>Extract and analyze content from Multi Files resumes with high accuracy text recognition.</p>
                 </div>
+
 
                 <div class="bento-item bento-small">
                     <div class="feature-icon">🔄</div>
@@ -94,11 +104,13 @@
                     <p>Automatically rank candidates from highest to lowest match score.</p>
                 </div>
 
+
                 <div class="bento-item bento-small">
                     <div class="feature-icon">💡</div>
                     <h3>Recommendations</h3>
                     <p>Get actionable insights on what each candidate lacks.</p>
                 </div>
+
 
                 <div class="bento-item bento-small">
                     <div class="feature-icon">⚡</div>
@@ -116,6 +128,7 @@
                 <p class="section-subtitle">Simple 4-step process for comprehensive resume analysis</p>
             </div>
 
+
             <div class="process-grid">
                 <div class="process-card">
                     <div class="process-number">1</div>
@@ -123,11 +136,13 @@
                     <p>Paste your job description or upload a document containing role requirements, skills, and qualifications needed.</p>
                 </div>
 
+
                 <div class="process-card">
                     <div class="process-number">2</div>
                     <h3>Add Resume Files</h3>
                     <p>Upload up to 5 PDF resume files. Our system supports various PDF formats and extracts text with high accuracy.</p>
                 </div>
+
 
                 <div class="process-card">
                     <div class="process-number">3</div>
@@ -135,10 +150,12 @@
                     <p>Our algorithms analyze each resume against job requirements, identifying skill matches, experience gaps, and qualification alignments.</p>
                 </div>
 
+
                 <div class="process-card">
                     <div class="process-number">4</div>
                     <h3>Review Results</h3>
                     <p>Get detailed reports with matching scores, missing skills analysis, improvement recommendations, and ranked candidate list.</p>
+                F</div>
                 F</div>
             </div>
         </div>
@@ -150,7 +167,7 @@
                 <h2>Ready to Streamline Your Hiring Process?</h2>
                 <p>Start analyzing resumes with AI-powered matching today. No setup required, instant results guaranteed.</p>
                 
-                <a href="{{ url_for('matchresume') }}" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">Get Started Now</a>
+                <a href="{{ url_for('matchr') }}" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">Get Started Now</a>
             </div>
         </div>
     </section>
