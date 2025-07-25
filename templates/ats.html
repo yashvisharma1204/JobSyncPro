@@ -994,12 +994,10 @@
             resumeItems[index].classList.add('active');
             currentResumeIndex = index;
 
-            // Scroll to the "Recommendations" section first when a resume is shown
             const recommendationsSection = resumes[index].querySelector('#recommendations');
             if (recommendationsSection) {
                 recommendationsSection.scrollIntoView({ behavior: 'auto', block: 'start' });
             } else {
-                // Fallback to first content section if recommendations not found
                 const firstContentSection = resumes[index].querySelector('.content-section');
                 if (firstContentSection) {
                     firstContentSection.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -1020,31 +1018,24 @@
             }
         }
 
-        // ========= SECTION 2: CODE TO REPLACE - START =========
         function scrollToSection(sectionId) {
-            // Prevent the default link behavior (like navigating to a new page)
             event.preventDefault();
 
-            // Find the currently active resume content container
             const activeResumeContent = document.querySelector('.resume-content.active');
             
-            // Look for the section *within* the active resume, or check for the job description
             let section;
             if (sectionId === 'job-description') {
                 section = document.getElementById('job-description');
             } else if (activeResumeContent) {
                 section = activeResumeContent.querySelector(`#${sectionId}`);
             } else {
-                // Fallback for when no resume is active
                 section = document.getElementById(sectionId);
             }
             
             if (section) {
                 section.scrollIntoView({ behavior: 'smooth' });
 
-                // Correctly update the active class on the sidebar links
                 document.querySelectorAll('.section-nav a').forEach(link => {
-                    // The href attribute already includes the '#'
                     if (link.getAttribute('href') === `#${sectionId}`) {
                         link.classList.add('active');
                     } else {
