@@ -2,59 +2,187 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Processing Resumes...</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
         body {
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f4f6f9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #333;
+            overflow: hidden;
         }
-        .container {
+        .loader-container {
+            width: 90%;
+            max-width: 500px;
+        }
+        .loader-container h1 {
+            font-size: 2rem;
             text-align: center;
-            padding: 2rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+            color: #ffffff;
+            font-weight: 500;
         }
-        .loader {
-            border: 8px solid #e3e3e3; /* Light grey */
-            border-top: 8px solid #007bff; /* Blue */
+        .progress-list {
+            list-style: none;
+            padding: 0;
+        }
+        .progress-item {
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .progress-item .icon {
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1.5s linear infinite;
-            margin: 0 auto 1.5rem auto;
+            border: 2px solid #a0a0a0;
+            margin-right: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.4s ease-in-out;
         }
+        .progress-item.active .icon {
+            border-color: #4caf50;
+            background-color: #4caf50;
+        }
+        .progress-item.active .icon .checkmark {
+            stroke-dasharray: 50;
+            stroke-dashoffset: 50;
+            animation: drawCheck 0.4s 0.3s ease-out forwards;
+        }
+        .checkmark {
+            stroke: white;
+            stroke-width: 4;
+            fill: none;
+        }
+        /* Animation delays for each item */
+        .progress-item:nth-child(1) { animation-delay: 0.2s; }
+        .progress-item:nth-child(2) { animation-delay: 0.4s; }
+        .progress-item:nth-child(3) { animation-delay: 0.6s; }
+        .progress-item:nth-child(4) { animation-delay: 0.8s; }
+        .progress-item:nth-child(5) { animation-delay: 1.0s; }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes drawCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        /* --- ADDED SPINNER STYLES --- */
+        .loader {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 6px solid #a0a0a0; /* Spinner track color */
+            border-top-color: #4caf50; /* Spinner moving color */
+            animation: spin 1s linear infinite;
+            margin: 40px auto 0 auto;
+            display: none; /* Hide by default */
+        }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        p {
-            font-size: 1rem;
-            color: #666;
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="loader"></div>
-        <h1>Analyzing Resumes</h1>
-        <p>Your request is being processed. You will be redirected to the results page shortly.</p>
-    </div>
 
-    <script>
-        setTimeout(function() {
+<div class="loader-container">
+    <h1>Analyzing... Please Wait</h1>
+    <ul class="progress-list">
+        <li class="progress-item" id="step1">
+            <div class="icon">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <span>Validating and Preparing Files...</span>
+        </li>
+        <li class="progress-item" id="step2">
+            <div class="icon">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <span>Extracting and Parsing Resumes...</span>
+        </li>
+        <li class="progress-item" id="step3">
+            <div class="icon">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <span>Calling AI for In-depth Analysis...</span>
+        </li>
+        <li class="progress-item" id="step4">
+            <div class="icon">
+                 <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <span>Calculating Final Scores...</span>
+        </li>
+         <li class="progress-item" id="step5">
+            <div class="icon">
+                 <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <span>Generating Results Page...</span>
+        </li>
+    </ul>
+
+    <div class="loader" id="final-spinner"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const steps = document.querySelectorAll('.progress-item');
+        const spinner = document.getElementById('final-spinner');
+        const stepCount = steps.length;
+        const staggerTime = 1700; // Time between each step animation
+        const initialDelay = 1000;
+
+        // This part runs your checkmark animations
+        steps.forEach((step, index) => {
+            setTimeout(() => {
+                step.classList.add('active');
+            }, initialDelay + (index * staggerTime));
+        });
+
+        // Calculate when the last checkmark animation finishes
+        const showSpinnerTime = initialDelay + ((stepCount - 1) * staggerTime) + 700; // 700ms is for the animation itself
+
+        // This part shows the spinner after the checkmarks are done
+        setTimeout(() => {
+            spinner.style.display = 'block';
+        }, showSpinnerTime);
+
+        // This part redirects to the results page after the total time
+        setTimeout(() => {
             window.location.href = "{{ url_for('results') }}";
-        }, 10000); // 10,000 milliseconds = 10 seconds
-    </script>
+        }, 10000); // Total 10-second delay
+    });
+</script>
+
 </body>
 </html>
