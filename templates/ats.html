@@ -772,9 +772,13 @@
         <div class="section-menu">
             <h3>Sections</h3>
             <ul class="section-nav">
-                <li><a href="{{ url_for('matcher') }}#job-description" class="active" onclick="scrollToSection('job-description')">
+                <li><a href="{{ url_for('matcher') }}#job-description" onclick="scrollToSection('job-description')">
                     <i class="fas fa-file-text"></i>
                     Job Description
+                </a></li>
+                <li><a href="{{ url_for('matcher') }}#recommendations" class="active" onclick="scrollToSection('recommendations')">
+                    <i class="fas fa-lightbulb"></i>
+                    Recommendations
                 </a></li>
                 <li><a href="{{ url_for('matcher') }}#technical-skills" onclick="scrollToSection('technical-skills')">
                     <i class="fas fa-code"></i>
@@ -787,10 +791,6 @@
                 <li><a href="{{ url_for('matcher') }}#missing-skills" onclick="scrollToSection('missing-skills')">
                     <i class="fas fa-exclamation-triangle"></i>
                     Missing Skills
-                </a></li>
-                <li><a href="{{ url_for('matcher') }}#recommendations" onclick="scrollToSection('recommendations')">
-                    <i class="fas fa-lightbulb"></i>
-                    Recommendations
                 </a></li>
                 <li><a href="{{ url_for('matcher') }}#quality" onclick="scrollToSection('quality')">
                     <i class="fas fa-star"></i>
@@ -813,7 +813,6 @@
             <p>Comprehensive analysis of resume compatibility with job requirements</p>
         </div>
 
-        <!-- Job Description Section -->
         <div class="job-description-section" id="job-description">
             <h2>
                 <i class="fas fa-file-text"></i>
@@ -825,6 +824,28 @@
         {% if top_resumes %}
             {% for resume in top_resumes %}
                 <div class="resume-content {% if loop.index0 == 0 %}active{% endif %}" id="resume-{{ loop.index0 }}">
+
+                    <div class="content-section recommendations" id="recommendations">
+                        <div class="section-header">
+                            <i class="fas fa-lightbulb"></i>
+                            <h2>Recommendations</h2>
+                        </div>
+                        {% if resume.recommendation_data.recommendations %}
+                            <div class="recommendation-list">
+                                {% for recommendation in resume.recommendation_data.recommendations %}
+                                    <div class="recommendation-item">
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span>{{ recommendation }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="recommendation-item">
+                                <i class="fas fa-trophy"></i>
+                                <span>Excellent match! No additional recommendations needed.</span>
+                            </div>
+                        {% endif %}
+                    </div>
 
                     <div class="content-section skills" id="technical-skills">
                         <div class="section-header">
@@ -893,28 +914,6 @@
                         {% endif %}
                     </div>
 
-                    <div class="content-section recommendations" id="recommendations">
-                        <div class="section-header">
-                            <i class="fas fa-lightbulb"></i>
-                            <h2>Recommendations</h2>
-                        </div>
-                        {% if resume.recommendation_data.recommendations %}
-                            <div class="recommendation-list">
-                                {% for recommendation in resume.recommendation_data.recommendations %}
-                                    <div class="recommendation-item">
-                                        <i class="fas fa-arrow-right"></i>
-                                        <span>{{ recommendation }}</span>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="recommendation-item">
-                                <i class="fas fa-trophy"></i>
-                                <span>Excellent match! No additional recommendations needed.</span>
-                            </div>
-                        {% endif %}
-                    </div>
-
                     <div class="content-section quality" id="quality">
                         <div class="section-header">
                             <i class="fas fa-star"></i>
@@ -927,7 +926,6 @@
                                     ('structural_suggestions', 'fas fa-sitemap', 'Structure & Formatting'),
                                     ('quantifiable_achievements', 'fas fa-chart-line', 'Quantifiable Achievements'),
                                     ('action_verbs', 'fas fa-bolt', 'Action Verbs'),
-                                    
                                 ] %}
 
                                 {% for key, icon_class, title in quality_categories_order %}
@@ -996,17 +994,25 @@
             resumeItems[index].classList.add('active');
             currentResumeIndex = index;
 
-            const firstContentSection = resumes[index].querySelector('.content-section');
-            if (firstContentSection) {
-                firstContentSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+            // Scroll to the "Recommendations" section first when a resume is shown
+            const recommendationsSection = resumes[index].querySelector('#recommendations');
+            if (recommendationsSection) {
+                recommendationsSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+            } else {
+                // Fallback to first content section if recommendations not found
+                const firstContentSection = resumes[index].querySelector('.content-section');
+                if (firstContentSection) {
+                    firstContentSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+                }
             }
 
             document.querySelectorAll('.section-nav a').forEach(link => {
                 link.classList.remove('active');
             });
-            const firstNavLink = document.querySelector('.section-nav a');
-            if (firstNavLink) {
-                firstNavLink.classList.add('active');
+            // Set the Recommendations link as active by default
+            const recommendationsNavLink = document.querySelector('.section-nav a[href*="#recommendations"]');
+            if (recommendationsNavLink) {
+                recommendationsNavLink.classList.add('active');
             }
 
             if (window.innerWidth <= 1024) {
