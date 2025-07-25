@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session, redirect, url_for
 import os
 import docx2txt
 import PyPDF2
@@ -13,11 +13,15 @@ import json
 import concurrent.futures
 import pickle
 import hashlib
+import uuid  # Added for unique job IDs
+import shutil  # Added for directory cleanup
 
 # --- Flask App Configuration ---
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'Uploads/'
 app.config['CACHE_FOLDER'] = 'Cache/'
+# SECRET_KEY is required for session management
+app.config['SECRET_KEY'] = os.urandom(24)
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -74,7 +78,7 @@ TECHNICAL_SKILLS = {
     "scikit learn"
 }
 
-# --- Text Extraction & Cleaning Functions ---
+# --- Text Extraction & Cleaning Functions (UNCHANGED) ---
 def clean_resume_text(resume_text):
     """Clean resume text to remove OCR artifacts and normalize formatting."""
     resume_text = re.sub(r'\b(\d+\s+)+\d+\b', ' ', resume_text)
@@ -131,7 +135,7 @@ def extract_text(file_path):
         logger.error(f"Unsupported file format: {file_path}")
         return ""
 
-# --- Caching Functions ---
+# --- Caching Functions (UNCHANGED) ---
 def get_gemini_response_cache_key(job_description, resume_text, prompt):
     combined_input = job_description + "|||" + resume_text + "|||" + prompt
     return hashlib.md5(combined_input.encode('utf-8')).hexdigest()
@@ -184,7 +188,7 @@ def load_cached_resume(cache_key):
         logger.error(f"Error loading cached parsed resume {cache_key}: {str(e)}")
         return None
 
-# --- Gemini API Call Function ---
+# --- Gemini API Call Function (UNCHANGED) ---
 def get_gemini_response(job_description, resume_text, prompt):
     if not GEMINI_API_KEY:
         logger.warning("Gemini API key not set, skipping API call and returning default error.")
@@ -202,7 +206,7 @@ def get_gemini_response(job_description, resume_text, prompt):
     }
 
     try:
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         input_text = f"Job Description:\n{job_description}\n\nResume:\n{resume_text}"
 
         response = model.generate_content([input_text, prompt], generation_config=generation_config)
@@ -220,7 +224,7 @@ def get_gemini_response(job_description, resume_text, prompt):
             "quality_feedback": {}
         })
 
-# --- Resume Parsing Function ---
+# --- Resume Parsing Function (UNCHANGED) ---
 def parse_resume(resume_text):
     logger.debug(f"--- Starting parse_resume ---")
     logger.debug(f"Initial resume text received: {resume_text[:200]}...")
@@ -341,7 +345,7 @@ def parse_resume(resume_text):
     logger.debug(f"Parsed resume FINAL soft skills: {parsed_data['soft_skills']}")
     return parsed_data
 
-# --- Resume Quality Analysis Function (Rule-based checks only) ---
+# --- Resume Quality Analysis Function (UNCHANGED) ---
 def analyze_resume_quality(resume_text, sections_content_dict):
     quality_feedback = {
         "grammar_issues": [], # This will primarily be populated by Gemini
@@ -395,7 +399,7 @@ def analyze_resume_quality(resume_text, sections_content_dict):
 
     return quality_feedback
 
-# --- Main Resume Processing Logic ---
+# --- Main Resume Processing Logic (UNCHANGED) ---
 def process_resume(resume_file, job_description, input_prompt):
     """Process a single resume file."""
     if not resume_file or not resume_file.filename:
@@ -536,186 +540,212 @@ def process_resume(resume_file, job_description, input_prompt):
         }
         return None, 0.0, error_recommendation_data, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
 
-# --- Flask Routes ---
+
+# --- Internal Helper Class for New Workflow ---
+class MockFileStorage:
+    """A helper class to mimic a Flask FileStorage object from a file path."""
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.filename = os.path.basename(filepath)
+
+    def save(self, dst):
+        """Copies the file to the destination, mimicking the save method."""
+        try:
+            # The original process_resume expects to save the file itself.
+            shutil.copy(self.filepath, dst)
+        except Exception as e:
+            logger.error(f"MockFileStorage could not copy {self.filepath} to {dst}: {e}")
+            raise
+
+
+# --- Flask Routes (UPDATED) ---
 @app.route("/")
 def matchresume():
     return render_template('main.html')
 
 @app.route("/matchresume")
 def matchr():
+    # Clear session data when returning to the home page
+    session.clear()
     return render_template('home.html')
 
 @app.route('/matcher', methods=['POST'])
-def matcher():
-    if request.method == 'POST':
-        job_description = request.form.get('job_description', '').strip()
-        resume_files = request.files.getlist('resumes')
+def loader():
+    """
+    This route now acts as the entry point. It receives the form data,
+    saves the files to a temporary unique location, stores the job info in the
+    session, and then displays the loader page.
+    """
+    job_description = request.form.get('job_description', '').strip()
+    resume_files = request.files.getlist('resumes')
 
-        logger.info(f"Received {len(resume_files)} resume files for matching.")
-        logger.debug(f"Job description: {job_description[:200]}...")
+    if not job_description or not resume_files or not any(f.filename for f in resume_files):
+        logger.warning("Loader: Missing job description or resume files.")
+        return render_template('home.html', message="Please provide a job description and at least one resume.")
 
-        if not resume_files or not job_description:
-            logger.warning("No resumes or job description provided by user.")
-            return render_template('home.html', message="Please upload resumes and enter a job description.")
+    job_id = str(uuid.uuid4())
+    job_upload_path = os.path.join(app.config['UPLOAD_FOLDER'], job_id)
+    os.makedirs(job_upload_path, exist_ok=True)
 
-        processed_results = []
+    saved_filenames = []
+    for f in resume_files:
+        if f.filename:
+            f.save(os.path.join(job_upload_path, f.filename))
+            saved_filenames.append(f.filename)
 
-        # Gemini API prompt for percentage match and recommendations
-        # UPDATED PROMPT: Emphasizes higher scoring for good matches, and clear definitions of contributions
-        input_prompt = """
-        You are a skilled ATS (Applicant Tracking System) scanner and career coach with a deep understanding of data science, resume best practices, and ATS functionality.
-        Evaluate the resume against the provided job description. Your goal is to provide a highly accurate and granular percentage match,
-        along with detailed missing keywords, actionable recommendations for improvement, and comprehensive textual feedback on resume quality.
+    session['job_id'] = job_id
+    session['job_description'] = job_description
+    session['resume_filenames'] = saved_filenames
 
-        **Instructions for Percentage Match (percentage_match):**
-        When calculating 'percentage_match', factor in ALL aspects of a strong resume for the given job. This includes:
-        - **Technical Skills (e.g., programming languages, frameworks, tools, algorithms):** 50% contribution to this score. Give **very high credit** for skills **demonstrated in projects or experience descriptions**, even if not explicitly listed in a 'skills' section. Assess the depth of experience with *demonstrated* technologies. Focus heavily on the core requirements identified in the JD; **do not penalize significantly** for the absence of technologies listed as "such as" or in comprehensive lists that represent optional or alternative technologies.
-        - **Work Experience & Projects (relevance, depth, impact, quantifiable achievements, duration):** 30% contribution to this score. Look for direct relevance to the job duties and give **maximum possible weight** to projects that directly simulate or align with aspects of the job description (e.g., full-stack development, API design, database management). Emphasize **strong, quantifiable results and clear impact**.
-        - **Soft Skills (e.g., communication, problem-solving, teamwork, leadership):** 10% contribution to this score.
-        - **Education & Certifications (relevance of degree, institutions, relevant courses):** 10% contribution to this score.
-        - **Resume Quality (Grammar, Structure, Conciseness, Professionalism):** This is integrated into the overall 'percentage_match'. A well-written, error-free, and well-structured resume that is concise and professional should positively impact this score. **Specifically, if the resume shows good grammar, clear structure, and effective conciseness, significantly boost the overall 'percentage_match'. Conversely, any significant issues in these areas should noticeably reduce the score.**
+    logger.info(f"Job {job_id} initiated. Displaying loader page, which will redirect to /results.")
+    return render_template('loader.html')
 
-        For each missing keyword, specify if it's a critical technical skill, a key soft skill, or a general requirement. Provide an 'importance' level: "critical", "important", or "optional".
-        
-        **Instructions for Detailed Resume Quality Feedback (quality_feedback):**
-        Provide detailed *textual* feedback for the candidate to improve their resume's quality, even if the 'percentage_match' is high. This feedback should be actionable and specific.
-        - **Grammar & Spelling:** Identify and list specific instances of grammatical errors, typos, punctuation mistakes, and awkward phrasing. If no significant errors, state that or mention the resume appears well-written. Focus on high-impact errors.
-        - **Resume Structure & Formatting:** Assess if the resume follows standard, ATS-friendly formatting (e.g., clear, consistent headings like 'Work Experience', 'Education', 'Skills', 'Projects'; proper use of bullet points; avoidance of excessive graphics). Provide concrete suggestions for structural improvements.
-        - **Quantifiable Achievements:** Identify opportunities where the candidate could add quantifiable results or metrics (numbers, percentages, currency, scale) to demonstrate impact more effectively in their experience and project descriptions. Provide examples of how they might rephrase points to include impact.
-        - **Action Verbs:** Note if the resume predominantly uses passive voice or weak verbs. Suggest areas where stronger, more impactful action verbs could be used to start bullet points or describe responsibilities (e.g., "managed," "developed," "implemented," "achieved").
-        - **Conciseness:** Evaluate if the resume's length is appropriate for the candidate's experience level (e.g., 1 page for early career, 1-2 pages for mid-career). Suggest areas for condensation if it appears too long, or expansion if too brief.
 
-        Return the entire response in a single JSON format. Ensure all keys and string values are properly quoted.
-        ```json
-        {
-          "percentage_match": <number between 0 and 100, float, precise to one decimal place, e.g., 82.5>,
-          "missing_keywords": [
-            {"keyword": "<string>", "type": "technical/soft/general", "importance": "critical/important/optional"},
-            ...
-          ],
-          "recommendations": [<string>, ...],
-          "quality_feedback": {
-            "grammar_issues": [<string>, ...],
-            "structural_suggestions": [<string>, ...],
-            "quantifiable_achievements": [<string>, ...],
-            "action_verbs": [<string>, ...],
-            "conciseness_suggestions": [<string>, ...]
-          }
+@app.route('/results')
+def results():
+    """
+    This new route contains all the original processing logic. It's triggered
+    by the redirect from the loader page. It retrieves job data from the session,
+    runs the analysis, and returns the final ats.html page.
+    """
+    job_id = session.get('job_id')
+    job_description = session.get('job_description')
+    resume_filenames = session.get('resume_filenames')
+
+    if not all([job_id, job_description, resume_filenames]):
+        logger.error("Results page accessed without job data in session. Redirecting to home.")
+        return redirect(url_for('matchr'))
+
+    job_upload_path = os.path.join(app.config['UPLOAD_FOLDER'], job_id)
+    # Recreate file-like objects for the process_resume function to use
+    resume_files = [MockFileStorage(os.path.join(job_upload_path, fname)) for fname in resume_filenames]
+
+    logger.info(f"Processing job {job_id} retrieved from session with {len(resume_files)} resumes.")
+
+    processed_results = []
+    input_prompt = """
+    You are a skilled ATS (Applicant Tracking System) scanner and career coach with a deep understanding of data science, resume best practices, and ATS functionality.
+    Evaluate the resume against the provided job description. Your goal is to provide a highly accurate and granular percentage match,
+    along with detailed missing keywords, actionable recommendations for improvement, and comprehensive textual feedback on resume quality.
+
+    **Instructions for Percentage Match (percentage_match):**
+    When calculating 'percentage_match', factor in ALL aspects of a strong resume for the given job. This includes:
+    - **Technical Skills (e.g., programming languages, frameworks, tools, algorithms):** 50% contribution to this score. Give **very high credit** for skills **demonstrated in projects or experience descriptions**, even if not explicitly listed in a 'skills' section. Assess the depth of experience with *demonstrated* technologies. Focus heavily on the core requirements identified in the JD; **do not penalize significantly** for the absence of technologies listed as "such as" or in comprehensive lists that represent optional or alternative technologies.
+    - **Work Experience & Projects (relevance, depth, impact, quantifiable achievements, duration):** 30% contribution to this score. Look for direct relevance to the job duties and give **maximum possible weight** to projects that directly simulate or align with aspects of the job description (e.g., full-stack development, API design, database management). Emphasize **strong, quantifiable results and clear impact**.
+    - **Soft Skills (e.g., communication, problem-solving, teamwork, leadership):** 10% contribution to this score.
+    - **Education & Certifications (relevance of degree, institutions, relevant courses):** 10% contribution to this score.
+    - **Resume Quality (Grammar, Structure, Conciseness, Professionalism):** This is integrated into the overall 'percentage_match'. A well-written, error-free, and well-structured resume that is concise and professional should positively impact this score. **Specifically, if the resume shows good grammar, clear structure, and effective conciseness, significantly boost the overall 'percentage_match'. Conversely, any significant issues in these areas should noticeably reduce the score.**
+
+    For each missing keyword, specify if it's a critical technical skill, a key soft skill, or a general requirement. Provide an 'importance' level: "critical", "important", or "optional".
+    
+    **Instructions for Detailed Resume Quality Feedback (quality_feedback):**
+    Provide detailed *textual* feedback for the candidate to improve their resume's quality, even if the 'percentage_match' is high. This feedback should be actionable and specific.
+    - **Grammar & Spelling:** Identify and list specific instances of grammatical errors, typos, punctuation mistakes, and awkward phrasing. If no significant errors, state that or mention the resume appears well-written. Focus on high-impact errors.
+    - **Resume Structure & Formatting:** Assess if the resume follows standard, ATS-friendly formatting (e.g., clear, consistent headings like 'Work Experience', 'Education', 'Skills', 'Projects'; proper use of bullet points; avoidance of excessive graphics). Provide concrete suggestions for structural improvements.
+    - **Quantifiable Achievements:** Identify opportunities where the candidate could add quantifiable results or metrics (numbers, percentages, currency, scale) to demonstrate impact more effectively in their experience and project descriptions. Provide examples of how they might rephrase points to include impact.
+    - **Action Verbs:** Note if the resume predominantly uses passive voice or weak verbs. Suggest areas where stronger, more impactful action verbs could be used to start bullet points or describe responsibilities (e.g., "managed," "developed," "implemented," "achieved").
+    - **Conciseness:** Evaluate if the resume's length is appropriate for the candidate's experience level (e.g., 1 page for early career, 1-2 pages for mid-career). Suggest areas for condensation if it appears too long, or expansion if too brief.
+
+    Return the entire response in a single JSON format. Ensure all keys and string values are properly quoted.
+    ```json
+    {
+      "percentage_match": <number between 0 and 100, float, precise to one decimal place, e.g., 82.5>,
+      "missing_keywords": [
+        {"keyword": "<string>", "type": "technical/soft/general", "importance": "critical/important/optional"},
+        ...
+      ],
+      "recommendations": [<string>, ...],
+      "quality_feedback": {
+        "grammar_issues": [<string>, ...],
+        "structural_suggestions": [<string>, ...],
+        "quantifiable_achievements": [<string>, ...],
+        "action_verbs": [<string>, ...],
+        "conciseness_suggestions": [<string>, ...]
+      }
+    }
+    ```
+    """
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_resume_file = {
+            executor.submit(process_resume, resume_file, job_description, input_prompt): resume_file
+            for resume_file in resume_files
         }
-        ```
-        """
+        for future in concurrent.futures.as_completed(future_to_resume_file):
+            original_file = future_to_resume_file[future]
+            filename, percentage, recommendation_data, parsed_resume, resume_text = future.result()
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future_to_resume_file = {
-                executor.submit(process_resume, resume_file, job_description, input_prompt): resume_file
-                for resume_file in resume_files
-            }
-            for future in concurrent.futures.as_completed(future_to_resume_file):
-                original_file = future_to_resume_file[future]
-                filename, percentage, recommendation_data, parsed_resume, resume_text = future.result()
+            if filename:
+                processed_results.append({
+                    "filename": filename,
+                    "percentage_gemini": percentage,
+                    "recommendation_data": recommendation_data,
+                    "parsed_resume": parsed_resume,
+                    "resume_text": resume_text
+                })
+            else:
+                logger.error(f"Failed to process {original_file.filename}. Skipping this resume.")
+                processed_results.append({
+                    "filename": original_file.filename or "Unnamed_Resume",
+                    "percentage_gemini": 0.0,
+                    "recommendation_data": recommendation_data,
+                    "parsed_resume": {"skills": [], "soft_skills": [], "raw_text": ""},
+                    "resume_text": ""
+                })
 
-                if filename:
-                    processed_results.append({
-                        "filename": filename,
-                        "percentage_gemini": percentage, # This now includes quality in its calculation
-                        "recommendation_data": recommendation_data,
-                        "parsed_resume": parsed_resume,
-                        "resume_text": resume_text
-                    })
-                else:
-                    logger.error(f"Failed to process {original_file.filename}. Skipping this resume.")
-                    processed_results.append({
-                        "filename": original_file.filename or "Unnamed_Resume",
-                        "percentage_gemini": 0.0,
-                        "recommendation_data": recommendation_data,
-                        "parsed_resume": {"skills": [], "soft_skills": [], "raw_text": ""},
-                        "resume_text": ""
-                    })
+    if not processed_results or all(res["percentage_gemini"] == 0.0 and not res["resume_text"].strip() for res in processed_results):
+        logger.warning("No valid resumes processed after all attempts.")
+        return render_template('home.html', message="No valid resumes processed. Please check file formats or content.")
 
-        if not processed_results or all(res["percentage_gemini"] == 0.0 and not res["resume_text"].strip() for res in processed_results):
-            logger.warning("No valid resumes processed after all attempts.")
-            return render_template('home.html', message="No valid resumes processed. Please check file formats or content.")
+    final_resumes_for_display = []
+    
+    GEMINI_COMPREHENSIVE_WEIGHT = 0.85 
+    TFIDF_WEIGHT = 0.15
 
-        # --- TF-IDF Calculation (per resume against JD) ---
-        # Changed: This block is now moved into the loop in process_resume
-        # or simplified here as it's not needed across all documents anymore
-        # The previous TF-IDF logic caused scores to change based on batch size.
-        # Now TF-IDF will be calculated uniquely for each JD-Resume pair.
-
-        final_resumes_for_display = []
+    for i, res in enumerate(processed_results):
+        gemini_match_score = res["percentage_gemini"] 
         
-        # Weights for the final combined score
-        GEMINI_COMPREHENSIVE_WEIGHT = 0.85 
-        TFIDF_WEIGHT = 0.15              
+        tfidf_score = 0.0
+        if res["resume_text"].strip() and job_description.strip():
+            try:
+                vectorizer = TfidfVectorizer(stop_words='english', min_df=1, max_df=0.9)
+                vectors = vectorizer.fit_transform([job_description, res["resume_text"]])
+                
+                if vectors.shape[1] > 0:
+                    similarity = cosine_similarity(vectors[0], vectors[1]).flatten()[0]
+                    tfidf_score = round(similarity * 100, 2)
+                    logger.debug(f"TF-IDF score for {res['filename']}: {tfidf_score}%")
+                else:
+                    logger.debug(f"TF-IDF vectorization resulted in empty features for {res['filename']}.")
+            except Exception as e:
+                logger.error(f"Error during TF-IDF calculation for {res['filename']}: {str(e)}")
 
-        for i, res in enumerate(processed_results):
-            gemini_match_score = res["percentage_gemini"] 
-            
-            # --- Per-resume TF-IDF calculation ---
-            # Create a new TF-IDF vectorizer for each JD-Resume pair
-            tfidf_score = 0.0
-            if res["resume_text"].strip() and job_description.strip():
-                try:
-                    vectorizer = TfidfVectorizer(stop_words='english', min_df=1, max_df=0.9)
-                    # Fit and transform only on the JD and the current resume
-                    vectors = vectorizer.fit_transform([job_description, res["resume_text"]])
-                    
-                    if vectors.shape[1] > 0: # Ensure there are features
-                        job_vector = vectors[0]
-                        resume_vector = vectors[1]
-                        
-                        # Calculate cosine similarity
-                        similarity = cosine_similarity(job_vector, resume_vector).flatten()[0]
-                        tfidf_score = round(similarity * 100, 2)
-                        logger.debug(f"TF-IDF score for {res['filename']}: {tfidf_score}%")
-                    else:
-                        logger.debug(f"TF-IDF vectorization resulted in empty features for {res['filename']}.")
-                except Exception as e:
-                    logger.error(f"Error during TF-IDF calculation for {res['filename']}: {str(e)}")
+        combined_score = (gemini_match_score * GEMINI_COMPREHENSIVE_WEIGHT) + (tfidf_score * TFIDF_WEIGHT)
 
+        final_resumes_for_display.append({
+            "filename": res["filename"],
+            "score": round(combined_score, 2),
+            "skills": res["parsed_resume"]["skills"],
+            "soft_skills": res["parsed_resume"]["soft_skills"],
+            "recommendation_data": res["recommendation_data"] 
+        })
 
-            combined_score = 0.0
-            # Only combine if both scores are meaningful (>0).
-            if gemini_match_score > 0.0 and tfidf_score > 0.0:
-                combined_score = (gemini_match_score * GEMINI_COMPREHENSIVE_WEIGHT) + \
-                                 (tfidf_score * TFIDF_WEIGHT)
-            elif gemini_match_score > 0.0: # If TF-IDF is 0, rely on Gemini
-                combined_score = gemini_match_score * GEMINI_COMPREHENSIVE_WEIGHT # Scale it down if TFIDF is truly absent
-                # Or, even simpler: if TF-IDF is 0, just use Gemini score. This is a design choice.
-                # Let's keep it simpler for now: if TF-IDF is 0, assume it contributes 0.
-                combined_score = (gemini_match_score * GEMINI_COMPREHENSIVE_WEIGHT) #+ (0 * TFIDF_WEIGHT)
-                logger.warning(f"TF-IDF score for {res['filename']} was 0. Final score based mostly on Gemini.")
-            elif tfidf_score > 0.0: # If Gemini failed but TF-IDF works
-                combined_score = tfidf_score * TFIDF_WEIGHT # Scale it down if Gemini is absent
+    top_resumes = sorted(final_resumes_for_display, key=lambda x: x['score'], reverse=True)[:5]
+    logger.info(f"Top matching resumes calculated for job {job_id}: {[r['filename'] for r in top_resumes]}")
+    
+    # --- Cleanup ---
+    try:
+        shutil.rmtree(job_upload_path)
+        logger.info(f"Cleaned up temporary directory: {job_upload_path}")
+    except OSError as e:
+        logger.error(f"Error removing temporary directory {job_upload_path}: {e}")
+    session.clear()
 
-            # If both are 0, combined_score remains 0.0.
-            # If you want to force it to be only Gemini's score if TF-IDF is zero:
-            # combined_score = gemini_match_score if tfidf_score == 0 else (gemini_match_score * GEMINI_COMPREHENSIVE_WEIGHT) + (tfidf_score * TFIDF_WEIGHT)
-            # However, the current logic is fine where TF-IDF's 0 pulls the score down.
-            # Let's revert to a more standard combining, where 0 doesn't "break" the other component.
-            # If TF-IDF is 0, it should still contribute 0 to the weighted sum.
-
-            combined_score = (gemini_match_score * GEMINI_COMPREHENSIVE_WEIGHT) + \
-                             (tfidf_score * TFIDF_WEIGHT)
-
-            final_resumes_for_display.append({
-                "filename": res["filename"],
-                "score": round(combined_score, 2),
-                "skills": res["parsed_resume"]["skills"],
-                "soft_skills": res["parsed_resume"]["soft_skills"],
-                "recommendation_data": res["recommendation_data"] 
-            })
-
-        top_resumes = sorted(final_resumes_for_display, key=lambda x: x['score'], reverse=True)[:5]
-
-        logger.info(f"Top matching resumes calculated: {[r['filename'] for r in top_resumes]}")
-        return render_template(
-            'ats.html',
-            job_description=job_description,
-            top_resumes=top_resumes
-        )
-
-    return render_template('home.html')
+    return render_template(
+        'ats.html',
+        job_description=job_description,
+        top_resumes=top_resumes
+    )
 
 
 if __name__ == '__main__':

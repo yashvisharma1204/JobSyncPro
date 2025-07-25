@@ -772,32 +772,32 @@
         <div class="section-menu">
             <h3>Sections</h3>
             <ul class="section-nav">
-                <li><a href="{{ url_for('matcher') }}#job-description" onclick="scrollToSection('job-description')">
+                <li><a href="#job-description" onclick="scrollToSection('job-description')">
                     <i class="fas fa-file-text"></i>
                     Job Description
                 </a></li>
-                <li><a href="{{ url_for('matcher') }}#recommendations" class="active" onclick="scrollToSection('recommendations')">
+                <li><a href="#recommendations" class="active" onclick="scrollToSection('recommendations')">
                     <i class="fas fa-lightbulb"></i>
                     Recommendations
                 </a></li>
-                <li><a href="{{ url_for('matcher') }}#technical-skills" onclick="scrollToSection('technical-skills')">
+                <li><a href="#technical-skills" onclick="scrollToSection('technical-skills')">
                     <i class="fas fa-code"></i>
                     Technical Skills
                 </a></li>
-                <li><a href="{{ url_for('matcher') }}#soft-skills" onclick="scrollToSection('soft-skills')">
+                <li><a href="#soft-skills" onclick="scrollToSection('soft-skills')">
                     <i class="fas fa-users"></i>
                     Soft Skills
                 </a></li>
-                <li><a href="{{ url_for('matcher') }}#missing-skills" onclick="scrollToSection('missing-skills')">
+                <li><a href="#missing-skills" onclick="scrollToSection('missing-skills')">
                     <i class="fas fa-exclamation-triangle"></i>
                     Missing Skills
                 </a></li>
-                <li><a href="{{ url_for('matcher') }}#quality" onclick="scrollToSection('quality')">
+                <li><a href="#quality" onclick="scrollToSection('quality')">
                     <i class="fas fa-star"></i>
                     Quality Feedback
                 </a></li>
             </ul>
-        </div>
+            </div>
 
         <div class="sidebar-controls">
             <a href="/matchresume" class="sidebar-btn back">
@@ -1020,18 +1020,45 @@
             }
         }
 
+        // ========= SECTION 2: CODE TO REPLACE - START =========
         function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId);
+            // Prevent the default link behavior (like navigating to a new page)
+            event.preventDefault();
+
+            // Find the currently active resume content container
+            const activeResumeContent = document.querySelector('.resume-content.active');
+            
+            // Look for the section *within* the active resume, or check for the job description
+            let section;
+            if (sectionId === 'job-description') {
+                section = document.getElementById('job-description');
+            } else if (activeResumeContent) {
+                section = activeResumeContent.querySelector(`#${sectionId}`);
+            } else {
+                // Fallback for when no resume is active
+                section = document.getElementById(sectionId);
+            }
+            
             if (section) {
                 section.scrollIntoView({ behavior: 'smooth' });
+
+                // Correctly update the active class on the sidebar links
                 document.querySelectorAll('.section-nav a').forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('href') === `#${sectionId}`);
+                    // The href attribute already includes the '#'
+                    if (link.getAttribute('href') === `#${sectionId}`) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
                 });
             }
+            
+            // Close sidebar on mobile after clicking a link
             if (window.innerWidth <= 1024) {
                 document.getElementById('sidebar').classList.remove('open');
             }
         }
+        // ========= SECTION 2: CODE TO REPLACE - END =========
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
