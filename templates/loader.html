@@ -20,26 +20,35 @@
         .loader-container {
             width: 90%;
             max-width: 500px;
+            text-align: center;
         }
         .loader-container h1 {
             font-size: 2rem;
-            text-align: center;
-            margin-bottom: 40px;
+            /* ✨ Changed: Reduced margin to move the list below it higher up */
+            margin-bottom: 40px; 
             color: #ffffff;
             font-weight: 500;
+        }
+        .progress-window {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+            perspective: 500px;
         }
         .progress-list {
             list-style: none;
             padding: 0;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            transform-style: preserve-3d;
         }
         .progress-item {
             display: flex;
+            justify-content: center; 
             align-items: center;
             font-size: 1.2rem;
             margin-bottom: 25px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeIn 0.5s ease-out forwards;
+            padding: 10px;
+            transition: opacity 0.8s ease, transform 0.8s ease;
         }
         .progress-item .icon {
             width: 30px;
@@ -51,6 +60,7 @@
             justify-content: center;
             align-items: center;
             transition: all 0.4s ease-in-out;
+            flex-shrink: 0;
         }
         .progress-item.active .icon {
             border-color: #4caf50;
@@ -66,37 +76,21 @@
             stroke-width: 4;
             fill: none;
         }
-        /* Animation delays for each item */
-        .progress-item:nth-child(1) { animation-delay: 0.2s; }
-        .progress-item:nth-child(2) { animation-delay: 0.4s; }
-        .progress-item:nth-child(3) { animation-delay: 0.6s; }
-        .progress-item:nth-child(4) { animation-delay: 0.8s; }
-        .progress-item:nth-child(5) { animation-delay: 1.0s; }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
         @keyframes drawCheck {
             to {
                 stroke-dashoffset: 0;
             }
         }
-        
-        /* --- ADDED SPINNER STYLES --- */
         .loader {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            border: 6px solid #a0a0a0; /* Spinner track color */
-            border-top-color: #4caf50; /* Spinner moving color */
+            border: 6px solid #a0a0a0;
+            border-top-color: #4caf50;
             animation: spin 1s linear infinite;
-            margin: 40px auto 0 auto;
-            display: none; /* Hide by default */
+            margin: 50px auto 0;
+            display: none;
         }
-
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -107,80 +101,103 @@
 <body>
 
 <div class="loader-container">
-    <h1>Analyzing... Please Wait</h1>
-    <ul class="progress-list">
-        <li class="progress-item" id="step1">
-            <div class="icon">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
-                </svg>
-            </div>
-            <span>Validating and Preparing Files...</span>
-        </li>
-        <li class="progress-item" id="step2">
-            <div class="icon">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
-                </svg>
-            </div>
-            <span>Extracting and Parsing Resumes...</span>
-        </li>
-        <li class="progress-item" id="step3">
-            <div class="icon">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
-                </svg>
-            </div>
-            <span>Calling AI for In-depth Analysis...</span>
-        </li>
-        <li class="progress-item" id="step4">
-            <div class="icon">
-                 <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
-                </svg>
-            </div>
-            <span>Calculating Final Scores...</span>
-        </li>
-         <li class="progress-item" id="step5">
-            <div class="icon">
-                 <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path class="checkmark" d="M20 6L9 17l-5-5"/>
-                </svg>
-            </div>
-            <span>Generating Results Page...</span>
-        </li>
-    </ul>
+    <h1>Analyzing<span id="ellipsis">.</span> Please Wait</h1>
+    
+    <div class="progress-window">
+        <ul class="progress-list">
+            <li class="progress-item">
+                <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24"><path class="checkmark" d="M20 6L9 17l-5-5"/></svg></div>
+                <span>Validating and Preparing Files...</span>
+            </li>
+            <li class="progress-item">
+                <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24"><path class="checkmark" d="M20 6L9 17l-5-5"/></svg></div>
+                <span>Extracting and Parsing Resumes...</span>
+            </li>
+            <li class="progress-item">
+                <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24"><path class="checkmark" d="M20 6L9 17l-5-5"/></svg></div>
+                <span>Calling AI for In-depth Analysis...</span>
+            </li>
+            <li class="progress-item">
+                <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24"><path class="checkmark" d="M20 6L9 17l-5-5"/></svg></div>
+                <span>Calculating Final Scores...</span>
+            </li>
+             <li class="progress-item">
+                <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24"><path class="checkmark" d="M20 6L9 17l-5-5"/></svg></div>
+                <span>Generating Results Page...</span>
+            </li>
+        </ul>
+    </div>
 
     <div class="loader" id="final-spinner"></div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const progressWindow = document.querySelector('.progress-window');
+        const progressList = document.querySelector('.progress-list');
         const steps = document.querySelectorAll('.progress-item');
         const spinner = document.getElementById('final-spinner');
+        const ellipsis = document.getElementById('ellipsis');
         const stepCount = steps.length;
-        const staggerTime = 1700; // Time between each step animation
-        const initialDelay = 1000;
 
-        // This part runs your checkmark animations
+        if (steps.length === 0) return;
+
+        const itemHeight = steps[0].offsetHeight;
+        const windowHeight = progressWindow.offsetHeight;
+        
+        const staggerTime = 1800;
+        const initialDelay = 500;
+
+        let dotCount = 1;
+        const ellipsisInterval = setInterval(() => {
+            ellipsis.textContent = '.'.repeat(dotCount);
+            dotCount = (dotCount % 3) + 1;
+        }, 600);
+
+        function updateView(activeIndex) {
+            const scrollOffset = (windowHeight / 2) - (itemHeight / 2) - (activeIndex * itemHeight);
+            progressList.style.transform = `translateY(${scrollOffset}px)`;
+
+            steps.forEach((step, i) => {
+                const distance = i - activeIndex;
+                let opacity = 0;
+                let rotation = 0;
+
+                if (distance === 0) {
+                    opacity = 1;
+                    rotation = 0;
+                } else if (Math.abs(distance) === 1) {
+                    opacity = 0.6;
+                    rotation = 20 * Math.sign(distance);
+                } else {
+                    opacity = 0.2;
+                    rotation = 30 * Math.sign(distance);
+                }
+                
+                step.style.opacity = opacity;
+                step.style.transform = `rotateX(${rotation}deg)`;
+            });
+        }
+
+        updateView(-1);
+
         steps.forEach((step, index) => {
             setTimeout(() => {
                 step.classList.add('active');
+                updateView(index);
             }, initialDelay + (index * staggerTime));
         });
 
-        // Calculate when the last checkmark animation finishes
-        const showSpinnerTime = initialDelay + ((stepCount - 1) * staggerTime) + 700; // 700ms is for the animation itself
-
-        // This part shows the spinner after the checkmarks are done
+        const showSpinnerTime = initialDelay + (stepCount * staggerTime);
         setTimeout(() => {
             spinner.style.display = 'block';
         }, showSpinnerTime);
 
-        // This part redirects to the results page after the total time
+        const redirectTime = showSpinnerTime + 2000;
         setTimeout(() => {
+            clearInterval(ellipsisInterval);
             window.location.href = "{{ url_for('results') }}";
-        }, 10000); // Total 10-second delay
+        }, redirectTime);
     });
 </script>
 
