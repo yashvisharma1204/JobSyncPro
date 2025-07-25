@@ -13,28 +13,23 @@ import json
 import concurrent.futures
 import pickle
 import hashlib
-import uuid  # Added for unique job IDs
-import shutil  # Added for directory cleanup
-
-# --- Flask App Configuration ---
+import uuid  
+import shutil  
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'Uploads/'
 app.config['CACHE_FOLDER'] = 'Cache/'
-# SECRET_KEY is required for session management
 app.config['SECRET_KEY'] = os.urandom(24)
 
-# --- Logging Setup ---
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# --- Gemini API Key Configuration ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     logger.error("GEMINI_API_KEY environment variable not set. Please set it before running the application.")
 else:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# --- SpaCy Model Loading ---
+#SpaCy Model  
 try:
     nlp = spacy.load("en_core_web_sm")
     logger.info("spaCy model 'en_core_web_sm' loaded successfully.")
@@ -42,7 +37,7 @@ except Exception as e:
     logger.error(f"Failed to load spaCy model: {str(e)}. Please run 'python -m spacy download en_core_web_sm'")
     raise
 
-# --- Skill Definitions (Consistently Lowercase) ---
+#  Skill Definitions (Consistently Lowercase) 
 SOFT_SKILLS = {
     "communication", "teamwork", "leadership", "problem-solving", "adaptability",
     "time management", "collaboration", "creativity", "work ethic", "interpersonal skills",
@@ -78,7 +73,7 @@ TECHNICAL_SKILLS = {
     "scikit learn"
 }
 
-# --- Text Extraction & Cleaning Functions (UNCHANGED) ---
+#Text Extraction & Cleaning Functions 
 def clean_resume_text(resume_text):
     """Clean resume text to remove OCR artifacts and normalize formatting."""
     resume_text = re.sub(r'\b(\d+\s+)+\d+\b', ' ', resume_text)
@@ -135,7 +130,7 @@ def extract_text(file_path):
         logger.error(f"Unsupported file format: {file_path}")
         return ""
 
-# --- Caching Functions (UNCHANGED) ---
+#  Caching Functions 
 def get_gemini_response_cache_key(job_description, resume_text, prompt):
     combined_input = job_description + "|||" + resume_text + "|||" + prompt
     return hashlib.md5(combined_input.encode('utf-8')).hexdigest()
@@ -188,7 +183,7 @@ def load_cached_resume(cache_key):
         logger.error(f"Error loading cached parsed resume {cache_key}: {str(e)}")
         return None
 
-# --- Gemini API Call Function (UNCHANGED) ---
+#Gemini API Call Function
 def get_gemini_response(job_description, resume_text, prompt):
     if not GEMINI_API_KEY:
         logger.warning("Gemini API key not set, skipping API call and returning default error.")
@@ -224,7 +219,7 @@ def get_gemini_response(job_description, resume_text, prompt):
             "quality_feedback": {}
         })
 
-# --- Resume Parsing Function (UNCHANGED) ---
+# Resume Parsing Function 
 def parse_resume(resume_text):
     logger.debug(f"--- Starting parse_resume ---")
     logger.debug(f"Initial resume text received: {resume_text[:200]}...")
