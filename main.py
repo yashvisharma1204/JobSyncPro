@@ -579,32 +579,28 @@ class MockFileStorage:
 # --- Flask Routes (UPDATED WITH AUTH) ---
 
 @app.route("/")
-def main_page():
-    # If user is logged in, take them to the main landing page.
-    # Otherwise, they go to the login page.
-    if 'user_uid' in session:
-        return redirect(url_for('main_landing_page'))
-    return redirect(url_for('login_page'))
+def index():
+    """
+    Serves the public landing page (main.html). No login is required.
+    """
+    return render_template('main.html')
 
 @app.route("/login")
 def login_page():
-    # If user is already logged in, don't show login page again.
+    """
+    Serves the authentication page. If the user is already logged in,
+    it redirects them straight to the resume matcher tool.
+    """
     if 'user_uid' in session:
-        return redirect(url_for('main_landing_page'))
-    # This renders your Firebase authentication page.
+        return redirect(url_for('home_page'))
     return render_template('auth.html')
-
-@app.route("/main")
-@login_required
-def main_landing_page():
-    # This is the new landing page after login.
-    return render_template('main.html')
 
 @app.route("/home")
 @login_required
 def home_page():
-    # This is the page with the resume upload form.
-    # Clear any previous job data when starting a new analysis.
+    """
+    This is the main tool page (uploader form), protected by the login_required decorator.
+    """
     session.pop('job_id', None)
     session.pop('job_description', None)
     session.pop('resume_filenames', None)
@@ -612,19 +608,17 @@ def home_page():
 
 @app.route("/logout")
 def logout():
+    """
+    Logs the user out and redirects to the public landing page.
+    """
     session.clear()
-    return redirect(url_for('login_page'))
+    return redirect(url_for('index'))
 
 @app.route('/verify-token', methods=['POST'])
 def verify_token():
     """
-    Receives Firebase ID token from client, verifies it, and creates a server-side session.
-    On the client-side (in your auth.html's JavaScript), after you get a 'success'
-    response from this function, you should redirect the user to '/main'.
-    Example client-side JS:
-    if (response.status === 'success') {
-        window.location.href = '/main';
-    }
+    Verifies the Firebase token. The client-side JS in auth.html will
+    redirect to '/home' on success.
     """
     try:
         token = request.json['token']
@@ -641,16 +635,13 @@ def verify_token():
 @login_required
 def loader():
     """
-    This route now acts as the entry point for processing. It receives the form data,
-    saves the files to a temporary unique location, stores the job info in the
-    session, and then displays the loader page. This part is correct.
+    This route is unchanged. It handles the form submission from home.html.
     """
     job_description = request.form.get('job_description', '').strip()
     resume_files = request.files.getlist('resumes')
 
     if not job_description or not resume_files or not any(f.filename for f in resume_files):
         logger.warning("Loader: Missing job description or resume files.")
-        # Redirect back to the upload form with a message
         return render_template('home.html', message="Please provide a job description and at least one resume.")
 
     job_id = str(uuid.uuid4())
@@ -674,18 +665,16 @@ def loader():
 @login_required
 def results():
     """
-    This route contains all the original processing logic. It's triggered
-    by the redirect from the loader page. It retrieves job data from the session,
-    runs the analysis, and returns the final ats.html page.
+    This route is mostly unchanged. It processes and shows the results.
+    The error redirect now goes back to the public landing page.
     """
     job_id = session.get('job_id')
     job_description = session.get('job_description')
     resume_filenames = session.get('resume_filenames')
 
     if not all([job_id, job_description, resume_filenames]):
-        logger.error("Results page accessed without job data in session. Redirecting to main landing page.")
-        # Changed redirect to main landing page on error
-        return redirect(url_for('main_landing_page'))
+        logger.error("Results page accessed without job data in session. Redirecting to home.")
+        return redirect(url_for('index')) # Redirect to public home on error
 
     job_upload_path = os.path.join(app.config['UPLOAD_FOLDER'], job_id)
     resume_files = [MockFileStorage(os.path.join(job_upload_path, fname)) for fname in resume_filenames]

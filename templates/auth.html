@@ -516,7 +516,7 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{{ url_for('login_page') }}" class="logo">JobSyncPro</a>
+            <a href="{{ url_for('index') }}" class="logo">JobSyncPro</a>
             <a href="{{ url_for('logout') }}" class="nav-link" id="navActionLink">Logout</a>
         </div>
     </nav>
@@ -675,7 +675,7 @@
                     if (response.ok) {
                         console.log('Server session created.');
                         // Redirect to the main application page
-                        window.location.href = '/main';
+                        window.location.href = '/home';
                     } else {
                         throw new Error('Server token verification failed.');
                     }
