@@ -689,22 +689,32 @@
 
             // Handle Email/Password Login
             loginEmailPasswordForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                const submitBtn = loginEmailPasswordForm.querySelector('.btn-primary');
-                setLoadingState(submitBtn, true, 'Signing In...');
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked; // Get checkbox state
+            const submitBtn = loginEmailPasswordForm.querySelector('.btn-primary');
+            setLoadingState(submitBtn, true, 'Signing In...');
 
-                try {
-                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                    await handleAuthSuccess(userCredential.user);
-                } catch (error) {
-                    console.error("Login Error:", error);
-                    alert(`Login failed: ${error.message}`);
-                } finally {
-                    setLoadingState(submitBtn, false, 'Sign In');
-                }
-            });
+            try {
+                // Set persistence based on the "Remember me" checkbox
+                const persistence = rememberMe 
+                    ? firebase.auth.Auth.Persistence.LOCAL 
+                    : firebase.auth.Auth.Persistence.SESSION;
+                await auth.setPersistence(persistence);
+
+                // Now, sign in the user
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                await handleAuthSuccess(userCredential.user);
+
+            } catch (error) {
+                console.error("Login Error:", error);
+                alert(`Login failed: ${error.message}`);
+            } finally {
+                setLoadingState(submitBtn, false, 'Sign In');
+            }
+        });
+
 
             // Handle Email/Password Signup
             signupEmailPasswordForm.addEventListener('submit', async function(e) {

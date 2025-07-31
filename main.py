@@ -15,7 +15,8 @@ import pickle
 import hashlib
 import uuid
 import shutil
-from functools import wraps # Import for decorator
+from functools import wraps
+from datetime import timedelta
 
 # --- Firebase Admin Setup ---
 import firebase_admin
@@ -25,6 +26,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'Uploads/'
 app.config['CACHE_FOLDER'] = 'Cache/'
 app.config['SECRET_KEY'] = os.urandom(24)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # --- Initialize Firebase Admin SDK ---
 try:
@@ -625,6 +627,7 @@ def verify_token():
         decoded_token = auth.verify_id_token(token)
         session['user_uid'] = decoded_token['uid']
         session['user_email'] = decoded_token.get('email', 'N/A')
+        session.permanent = True
         logger.info(f"User authenticated: {session['user_email']} ({session['user_uid']})")
         return jsonify({'status': 'success', 'uid': decoded_token['uid']}), 200
     except Exception as e:
