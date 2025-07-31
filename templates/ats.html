@@ -730,12 +730,14 @@
         <div class="nav-container">
             <a href="/" class="logo">JobSyncPro</a>
             <ul class="nav-links">
-                <li><a href="{{ url_for('matchresume') }}">Home</a></li>
+                <li><a href="{{ url_for('home_page') }}">New Analysis</a></li>
                 <li><a href="https://github.com/yashvisharma1204/JobSyncPro" target="_blank">Documentation</a></li>
             </ul>
             <div class="auth-buttons">
-                <a href="#" class="btn btn-outline">Login</a>
-                <a href="#" class="btn btn-primary">Sign Up</a>
+                {% if session.user_email %}
+        <span class="user-email" style="color: #cbd5e1; padding-right: 1rem;">{{ session.user_email }}</span>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+    {% endif %}
             </div>
         </div>
     </nav>
@@ -800,10 +802,10 @@
             </div>
 
         <div class="sidebar-controls">
-            <a href="/matchresume" class="sidebar-btn back">
-                <i class="fas fa-arrow-left"></i>
-                Back to Matcher
-            </a>
+            <a href="{{ url_for('home_page') }}" class="sidebar-btn back">
+    <i class="fas fa-arrow-left"></i>
+    Back to Matcher
+</a>
         </div>
     </div>
 

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, session, redirect, url_for
+from flask import Flask, request, render_template, session, redirect, url_for, jsonify
 import os
 import docx2txt
 import PyPDF2
@@ -13,12 +13,35 @@ import json
 import concurrent.futures
 import pickle
 import hashlib
-import uuid  
-import shutil  
+import uuid
+import shutil
+from functools import wraps # Import for decorator
+
+# --- Firebase Admin Setup ---
+import firebase_admin
+from firebase_admin import credentials, auth
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'Uploads/'
 app.config['CACHE_FOLDER'] = 'Cache/'
 app.config['SECRET_KEY'] = os.urandom(24)
+
+# --- Initialize Firebase Admin SDK ---
+try:
+    # Get the absolute path to the directory where main.py is located
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    # Join that path with the filename to create a reliable path
+    service_account_path = os.path.join(BASE_DIR, 'firebase-service-account.json')
+    
+    # Use the absolute path to initialize
+    cred = credentials.Certificate(service_account_path)
+    firebase_admin.initialize_app(cred)
+    logging.info("Firebase Admin SDK initialized successfully.")
+except Exception as e:
+    logging.error(f"Failed to initialize Firebase Admin SDK. Make sure 'firebase-service-account.json' is present. Error: {e}")
+    # You might want to exit or handle this more gracefully depending on your needs
+    # For now, the app will run but auth-dependent routes will fail.
+
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -29,7 +52,7 @@ if not GEMINI_API_KEY:
 else:
     genai.configure(api_key=GEMINI_API_KEY)
 
-#SpaCy Model  
+#SpaCy Model
 try:
     nlp = spacy.load("en_core_web_sm")
     logger.info("spaCy model 'en_core_web_sm' loaded successfully.")
@@ -37,7 +60,7 @@ except Exception as e:
     logger.error(f"Failed to load spaCy model: {str(e)}. Please run 'python -m spacy download en_core_web_sm'")
     raise
 
-#  Skill Definitions (Consistently Lowercase) 
+#  Skill Definitions (Consistently Lowercase)
 SOFT_SKILLS = {
     "communication", "teamwork", "leadership", "problem-solving", "adaptability",
     "time management", "collaboration", "creativity", "work ethic", "interpersonal skills",
@@ -73,7 +96,18 @@ TECHNICAL_SKILLS = {
     "scikit learn"
 }
 
-#Text Extraction & Cleaning Functions 
+# --- Login Required Decorator ---
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_uid' not in session:
+            return redirect(url_for('login_page'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# --- CORE LOGIC (UNCHANGED AS REQUESTED) ---
+
 def clean_resume_text(resume_text):
     """Clean resume text to remove OCR artifacts and normalize formatting."""
     resume_text = re.sub(r'\b(\d+\s+)+\d+\b', ' ', resume_text)
@@ -130,7 +164,7 @@ def extract_text(file_path):
         logger.error(f"Unsupported file format: {file_path}")
         return ""
 
-#  Caching Functions 
+#  Caching Functions
 def get_gemini_response_cache_key(job_description, resume_text, prompt):
     combined_input = job_description + "|||" + resume_text + "|||" + prompt
     return hashlib.md5(combined_input.encode('utf-8')).hexdigest()
@@ -219,7 +253,7 @@ def get_gemini_response(job_description, resume_text, prompt):
             "quality_feedback": {}
         })
 
-# Resume Parsing Function 
+# Resume Parsing Function
 def parse_resume(resume_text):
     logger.debug(f"--- Starting parse_resume ---")
     logger.debug(f"Initial resume text received: {resume_text[:200]}...")
@@ -340,19 +374,13 @@ def parse_resume(resume_text):
     logger.debug(f"Parsed resume FINAL soft skills: {parsed_data['soft_skills']}")
     return parsed_data
 
-# --- Resume Quality Analysis Function (UNCHANGED) ---
 def analyze_resume_quality(resume_text, sections_content_dict):
     quality_feedback = {
         "grammar_issues": [], # This will primarily be populated by Gemini
         "structural_suggestions": [],
         "conciseness_suggestions": [],
     }
-
-    # Grammar and Spelling Check - This local function will now state that Gemini handles it.
     quality_feedback["grammar_issues"].append("Grammar and spelling analysis is primarily provided by the AI (Gemini) for advanced contextual review.")
-
-
-    # 2. Structure Analysis (Rule-based)
     detected_sections = list(sections_content_dict.keys())
     standard_sections = ["summary", "experience", "education", "skills", "projects"]
     missing_standard = [s for s in standard_sections if s not in detected_sections or not sections_content_dict.get(s, "").strip()]
@@ -360,7 +388,6 @@ def analyze_resume_quality(resume_text, sections_content_dict):
         quality_feedback["structural_suggestions"].append(
             f"Consider ensuring your resume includes standard sections like: {', '.join(missing_standard).title()}."
         )
-
     for section_name in ["experience", "projects"]:
         if sections_content_dict.get(section_name):
             section_content = sections_content_dict[section_name]
@@ -373,14 +400,10 @@ def analyze_resume_quality(resume_text, sections_content_dict):
                 quality_feedback["structural_suggestions"].append(
                     f"In your '{section_name.title()}' section, consider using more consistent bullet points for readability and ATS parsing."
                 )
-
     if not quality_feedback["structural_suggestions"]:
         quality_feedback["structural_suggestions"].append("Basic resume structure appears well-organized for ATS compatibility.")
-
-    # 3. Conciseness Check
     word_count = len(resume_text.split())
     estimated_pages = max(1, round(word_count / 500))
-
     if word_count > 1000 and estimated_pages > 2:
         quality_feedback["conciseness_suggestions"].append(
             f"Your resume has approximately {estimated_pages} pages ({word_count} words). For many roles, a concise 1-2 page resume is preferred. Consider condensing information."
@@ -391,25 +414,28 @@ def analyze_resume_quality(resume_text, sections_content_dict):
         )
     if not quality_feedback["conciseness_suggestions"]:
         quality_feedback["conciseness_suggestions"].append("Resume length appears appropriate.")
-
     return quality_feedback
 
-# --- Main Resume Processing Logic (UNCHANGED) ---
 def process_resume(resume_file, job_description, input_prompt):
     """Process a single resume file."""
     if not resume_file or not resume_file.filename:
         logger.warning("Empty or no resume file received in process_resume.")
         return None, 0.0, {"percentage_match": 0.0, "missing_keywords": [], "recommendations": [], "quality_feedback": {}}, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
 
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename)
+    # This function is now called with a MockFileStorage object which has a `filepath` attribute
+    # The original save logic is now handled by MockFileStorage.save(), which just copies the file.
+    filename_for_processing = os.path.join(app.config['UPLOAD_FOLDER'], 'temp_processing', resume_file.filename)
     try:
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        resume_file.save(filename)
-        logger.debug(f"Saved resume file: {filename}")
+        # Create a temporary subdir for this file to avoid name clashes in concurrent processing
+        temp_processing_dir = os.path.dirname(filename_for_processing)
+        os.makedirs(temp_processing_dir, exist_ok=True)
+        resume_file.save(filename_for_processing) # This now copies from job_upload_path to temp_processing_path
+        logger.debug(f"Copied resume file for processing: {filename_for_processing}")
 
-        resume_text = extract_text(filename)
+
+        resume_text = extract_text(filename_for_processing)
         if not resume_text.strip():
-            logger.error(f"Failed to extract text from {filename} (empty content).")
+            logger.error(f"Failed to extract text from {filename_for_processing} (empty content).")
             return None, 0.0, {"percentage_match": 0.0, "missing_keywords": [], "recommendations": [], "quality_feedback": {}}, {"skills": [], "soft_skills": [], "raw_text": ""}, ""
 
         parsed_resume_cache_key = get_resume_cache_key(resume_text)
@@ -465,7 +491,6 @@ def process_resume(resume_file, job_description, input_prompt):
             else:
                 percentage = 0.0
                 recommendation_data["recommendations"].append(f"Error: Gemini response JSON malformed, and percentage not found via regex. Raw response saved below.")
-
             missing_kw_match = re.search(r'"missing_keywords"\s*:\s*\[(.*?)\]', gemini_response_raw, re.DOTALL)
             if missing_kw_match:
                 try:
@@ -496,7 +521,6 @@ def process_resume(resume_file, job_description, input_prompt):
                 except Exception as ex:
                     logger.debug(f"Failed to extract keywords from malformed JSON string '{keywords_str}' using fallback: {ex}")
                     pass
-
             quality_feedback_match = re.search(r'"quality_feedback"\s*:\s*({.*?})', gemini_response_raw, re.DOTALL)
             if quality_feedback_match:
                 try:
@@ -505,26 +529,25 @@ def process_resume(resume_file, job_description, input_prompt):
                 except json.JSONDecodeError as ex:
                     logger.debug(f"Failed to extract quality_feedback from malformed JSON: {ex}")
                     recommendation_data["quality_feedback"] = {"parsing_error": f"Failed to parse quality_feedback: {str(ex)}"}
-
             recommendation_data["recommendations"].append(f"Full Raw Gemini Response (for debugging): {gemini_response_raw}")
-
         final_quality_feedback = {}
         final_quality_feedback.update(local_quality_feedback)
         final_quality_feedback.update(recommendation_data["quality_feedback"])
         recommendation_data["quality_feedback"] = final_quality_feedback
 
+        # Cleanup the temp file for this specific process
         try:
-            os.remove(filename)
-            logger.debug(f"Removed temporary file: {filename}")
+            os.remove(filename_for_processing)
+            logger.debug(f"Removed temporary processing file: {filename_for_processing}")
         except OSError as e:
-            logger.error(f"Error removing file {filename}: {e}")
+            logger.error(f"Error removing file {filename_for_processing}: {e}")
 
         return resume_file.filename, percentage, recommendation_data, parsed_resume, resume_text
     except Exception as e:
         logger.error(f"Critical error processing file {resume_file.filename}: {str(e)}")
         try:
-            if os.path.exists(filename):
-                os.remove(filename)
+            if os.path.exists(filename_for_processing):
+                os.remove(filename_for_processing)
         except OSError:
             pass
         error_recommendation_data = {
@@ -553,29 +576,81 @@ class MockFileStorage:
             raise
 
 
-# --- Flask Routes (UPDATED) ---
+# --- Flask Routes (UPDATED WITH AUTH) ---
+
 @app.route("/")
-def matchresume():
+def main_page():
+    # If user is logged in, take them to the main landing page.
+    # Otherwise, they go to the login page.
+    if 'user_uid' in session:
+        return redirect(url_for('main_landing_page'))
+    return redirect(url_for('login_page'))
+
+@app.route("/login")
+def login_page():
+    # If user is already logged in, don't show login page again.
+    if 'user_uid' in session:
+        return redirect(url_for('main_landing_page'))
+    # This renders your Firebase authentication page.
+    return render_template('auth.html')
+
+@app.route("/main")
+@login_required
+def main_landing_page():
+    # This is the new landing page after login.
     return render_template('main.html')
 
-@app.route("/matchresume")
-def matchr():
-    # Clear session data when returning to the home page
-    session.clear()
+@app.route("/home")
+@login_required
+def home_page():
+    # This is the page with the resume upload form.
+    # Clear any previous job data when starting a new analysis.
+    session.pop('job_id', None)
+    session.pop('job_description', None)
+    session.pop('resume_filenames', None)
     return render_template('home.html')
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for('login_page'))
+
+@app.route('/verify-token', methods=['POST'])
+def verify_token():
+    """
+    Receives Firebase ID token from client, verifies it, and creates a server-side session.
+    On the client-side (in your auth.html's JavaScript), after you get a 'success'
+    response from this function, you should redirect the user to '/main'.
+    Example client-side JS:
+    if (response.status === 'success') {
+        window.location.href = '/main';
+    }
+    """
+    try:
+        token = request.json['token']
+        decoded_token = auth.verify_id_token(token)
+        session['user_uid'] = decoded_token['uid']
+        session['user_email'] = decoded_token.get('email', 'N/A')
+        logger.info(f"User authenticated: {session['user_email']} ({session['user_uid']})")
+        return jsonify({'status': 'success', 'uid': decoded_token['uid']}), 200
+    except Exception as e:
+        logger.error(f"Token verification failed: {e}")
+        return jsonify({'status': 'error', 'message': 'Invalid token'}), 401
+
 @app.route('/matcher', methods=['POST'])
+@login_required
 def loader():
     """
-    This route now acts as the entry point. It receives the form data,
+    This route now acts as the entry point for processing. It receives the form data,
     saves the files to a temporary unique location, stores the job info in the
-    session, and then displays the loader page.
+    session, and then displays the loader page. This part is correct.
     """
     job_description = request.form.get('job_description', '').strip()
     resume_files = request.files.getlist('resumes')
 
     if not job_description or not resume_files or not any(f.filename for f in resume_files):
         logger.warning("Loader: Missing job description or resume files.")
+        # Redirect back to the upload form with a message
         return render_template('home.html', message="Please provide a job description and at least one resume.")
 
     job_id = str(uuid.uuid4())
@@ -592,14 +667,14 @@ def loader():
     session['job_description'] = job_description
     session['resume_filenames'] = saved_filenames
 
-    logger.info(f"Job {job_id} initiated. Displaying loader page, which will redirect to /results.")
+    logger.info(f"Job {job_id} initiated for user {session.get('user_email')}. Displaying loader page.")
     return render_template('loader.html')
 
-
 @app.route('/results')
+@login_required
 def results():
     """
-    This new route contains all the original processing logic. It's triggered
+    This route contains all the original processing logic. It's triggered
     by the redirect from the loader page. It retrieves job data from the session,
     runs the analysis, and returns the final ats.html page.
     """
@@ -608,11 +683,11 @@ def results():
     resume_filenames = session.get('resume_filenames')
 
     if not all([job_id, job_description, resume_filenames]):
-        logger.error("Results page accessed without job data in session. Redirecting to home.")
-        return redirect(url_for('matchr'))
+        logger.error("Results page accessed without job data in session. Redirecting to main landing page.")
+        # Changed redirect to main landing page on error
+        return redirect(url_for('main_landing_page'))
 
     job_upload_path = os.path.join(app.config['UPLOAD_FOLDER'], job_id)
-    # Recreate file-like objects for the process_resume function to use
     resume_files = [MockFileStorage(os.path.join(job_upload_path, fname)) for fname in resume_filenames]
 
     logger.info(f"Processing job {job_id} retrieved from session with {len(resume_files)} resumes.")
@@ -632,7 +707,7 @@ def results():
     - **Resume Quality (Grammar, Structure, Conciseness, Professionalism):** This is integrated into the overall 'percentage_match'. A well-written, error-free, and well-structured resume that is concise and professional should positively impact this score. **Specifically, if the resume shows good grammar, clear structure, and effective conciseness, significantly boost the overall 'percentage_match'. Conversely, any significant issues in these areas should noticeably reduce the score.**
 
     For each missing keyword, specify if it's a critical technical skill, a key soft skill, or a general requirement. Provide an 'importance' level: "critical", "important", or "optional".
-    
+
     **Instructions for Detailed Resume Quality Feedback (quality_feedback):**
     Provide detailed *textual* feedback for the candidate to improve their resume's quality, even if the 'percentage_match' is high. This feedback should be actionable and specific.
     - **Grammar & Spelling:** Identify and list specific instances of grammatical errors, typos, punctuation mistakes, and awkward phrasing. If no significant errors, state that or mention the resume appears well-written. Focus on high-impact errors.
@@ -693,19 +768,19 @@ def results():
         return render_template('home.html', message="No valid resumes processed. Please check file formats or content.")
 
     final_resumes_for_display = []
-    
-    GEMINI_COMPREHENSIVE_WEIGHT = 0.85 
+
+    GEMINI_COMPREHENSIVE_WEIGHT = 0.85
     TFIDF_WEIGHT = 0.15
 
     for i, res in enumerate(processed_results):
-        gemini_match_score = res["percentage_gemini"] 
-        
+        gemini_match_score = res["percentage_gemini"]
+
         tfidf_score = 0.0
         if res["resume_text"].strip() and job_description.strip():
             try:
                 vectorizer = TfidfVectorizer(stop_words='english', min_df=1, max_df=0.9)
                 vectors = vectorizer.fit_transform([job_description, res["resume_text"]])
-                
+
                 if vectors.shape[1] > 0:
                     similarity = cosine_similarity(vectors[0], vectors[1]).flatten()[0]
                     tfidf_score = round(similarity * 100, 2)
@@ -722,19 +797,23 @@ def results():
             "score": round(combined_score, 2),
             "skills": res["parsed_resume"]["skills"],
             "soft_skills": res["parsed_resume"]["soft_skills"],
-            "recommendation_data": res["recommendation_data"] 
+            "recommendation_data": res["recommendation_data"]
         })
 
     top_resumes = sorted(final_resumes_for_display, key=lambda x: x['score'], reverse=True)[:5]
     logger.info(f"Top matching resumes calculated for job {job_id}: {[r['filename'] for r in top_resumes]}")
-    
+
     # --- Cleanup ---
     try:
         shutil.rmtree(job_upload_path)
         logger.info(f"Cleaned up temporary directory: {job_upload_path}")
     except OSError as e:
         logger.error(f"Error removing temporary directory {job_upload_path}: {e}")
-    session.clear()
+    
+    # Clear job-specific session data but keep user login
+    session.pop('job_id', None)
+    session.pop('job_description', None)
+    session.pop('resume_filenames', None)
 
     return render_template(
         'ats.html',

@@ -17,8 +17,10 @@
                 <li><a href="#process">Process</a></li>
             </ul>
             <div class="auth-buttons">
-                <a href="#" class="btn btn-outline">Login</a>
-                <a href="#" class="btn btn-primary">Sign Up</a>
+                {% if session.user_email %}
+        <span class="user-email" style="color: #cbd5e1; padding-right: 1rem;">{{ session.user_email }}</span>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+    {% endif %}
             </div>
         </div>
     </nav>
@@ -27,7 +29,7 @@
             <h1>AI-Powered Resume Matching Platform</h1>
             <p>Upload job descriptions and analyze up to 5 resumes simultaneously. Get instant matching scores, gap analysis, and ranked results with detailed recommendations.</p>
             <div class="hero-cta">
-                <a href="{{ url_for('matchr') }}" class="btn btn-primary">Start Analysis →</a>
+                <a href="{{ url_for('home_page') }}" class="btn btn-primary">Start Analysis →</a>
             </div>
         </div>
     </section>
@@ -144,7 +146,7 @@
             <div class="cta-content">
                 <h2>Ready to Streamline Your Hiring Process?</h2>
                 <p>Start analyzing resumes with AI-powered matching today. No setup required, instant results guaranteed.</p>
-                <a href="#" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">Get Started Now</a>
+                <a href="{{ url_for('home_page') }}" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">Get Started Now</a>
             </div>
         </div>
     </section>

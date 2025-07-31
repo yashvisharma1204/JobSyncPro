@@ -10,7 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
@@ -20,7 +19,6 @@
             overflow-x: hidden;
             min-height: 100vh;
         }
-
         /* Background decorations */
         .bg-decoration {
             position: fixed;
@@ -127,7 +125,7 @@
             transform: scaleX(1);
         }
 
-        .back-link {
+        .nav-link {
             color: #cbd5e1;
             text-decoration: none;
             font-weight: 500;
@@ -137,25 +135,25 @@
             position: relative;
         }
 
-        .back-link::before {
+        .nav-link::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
             border-radius: 20px;
             transform: scale(0);
             transition: transform 0.3s ease;
         }
 
-        .back-link:hover::before {
+        .nav-link:hover::before {
             transform: scale(1);
         }
 
-        .back-link:hover {
-            color: #60a5fa;
+        .nav-link:hover {
+            color: #fca5a5;
             transform: translateY(-1px);
         }
 
@@ -167,7 +165,7 @@
             justify-content: center;
             padding: 100px 2rem 2rem;
             position: relative;
-            background: 
+            background:
                 linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 1) 100%),
                 radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
@@ -180,7 +178,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%),
                 linear-gradient(-45deg, transparent 30%, rgba(99, 102, 241, 0.05) 50%, transparent 70%);
             animation: shimmer 6s ease-in-out infinite;
@@ -192,7 +190,7 @@
         }
 
         /* Form containers */
-        .auth-container {
+        .auth-container{
             display: flex;
             max-width: 1000px;
             width: 100%;
@@ -437,7 +435,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
         }
@@ -518,8 +516,8 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <a href="#" class="logo">JobSyncPro</a>
-            <a href="#" class="back-link">← Back to Home</a>
+            <a href="{{ url_for('login_page') }}" class="logo">JobSyncPro</a>
+            <a href="{{ url_for('logout') }}" class="nav-link" id="navActionLink">Logout</a>
         </div>
     </nav>
 
@@ -528,32 +526,32 @@
             <div class="form-section active" id="loginForm">
                 <h2>Welcome Back</h2>
                 <p>Sign in to your JobSyncPro account</p>
-                
+
                 <form id="loginEmailPasswordForm">
                     <div class="form-group">
                         <label for="loginEmail">Email Address</label>
                         <input type="email" id="loginEmail" placeholder="Enter your email" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="loginPassword">Password</label>
                         <input type="password" id="loginPassword" placeholder="Enter your password" required>
                     </div>
-                    
+
                     <div class="checkbox-group">
                         <input type="checkbox" id="rememberMe">
                         <label for="rememberMe">Remember me</label>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">Sign In</button>
-                    
+
                     <div class="divider">
                         <span>or</span>
                     </div>
-                    
+
                     <button type="button" class="btn btn-secondary" id="loginGoogleBtn">Continue with Google</button>
                 </form>
-                
+
                 <div class="switch-form">
                     Don't have an account? <button onclick="switchToSignup()">Sign up here</button>
                 </div>
@@ -562,42 +560,42 @@
             <div class="form-section" id="signupForm">
                 <h2>Create Account</h2>
                 <p>Join JobSyncPro and start analyzing resumes</p>
-                
+
                 <form id="signupEmailPasswordForm">
                     <div class="form-group">
                         <label for="signupName">Full Name</label>
                         <input type="text" id="signupName" placeholder="Enter your full name" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="signupEmail">Email Address</label>
                         <input type="email" id="signupEmail" placeholder="Enter your email" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="signupPassword">Password</label>
                         <input type="password" id="signupPassword" placeholder="Create a password" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password</label>
                         <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
                     </div>
-                    
+
                     <div class="checkbox-group">
                         <input type="checkbox" id="agreeTerms" required>
                         <label for="agreeTerms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">Create Account</button>
-                    
+
                     <div class="divider">
                         <span>or</span>
                     </div>
-                    
+
                     <button type="button" class="btn btn-secondary" id="signupGoogleBtn">Continue with Google</button>
                 </form>
-                
+
                 <div class="switch-form">
                     Already have an account? <button onclick="switchToLogin()">Sign in here</button>
                 </div>
@@ -607,7 +605,7 @@
                 <div class="info-content">
                     <h3>AI-Powered Resume Analysis</h3>
                     <p>Join thousands of HR professionals who trust JobSyncPro for smart resume matching and candidate analysis.</p>
-                    
+
                     <ul class="feature-list">
                         <li>Analyze up to 5 resumes simultaneously</li>
                         <li>95% accurate matching algorithms</li>
@@ -622,15 +620,14 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
-    
+
     <script>
         // Your Firebase configuration
-        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDUPxCHIbdD-XA4ThW1YseMZ3bW3s1Z22U",
             authDomain: "visionboard-debfd.firebaseapp.com",
             projectId: "visionboard-debfd",
-            storageBucket: "visionboard-debfd.firebasestorage.app",
+            storageBucket: "visionboard-debfd.appspot.com", // Corrected storage bucket
             messagingSenderId: "240035443517",
             appId: "1:240035443517:web:5e26fc05693e4a821f8b54",
             measurementId: "G-MHES905JPG"
@@ -656,33 +653,51 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             // Get form elements
-            const loginEmailInput = document.getElementById('loginEmail');
-            const loginPasswordInput = document.getElementById('loginPassword');
             const loginEmailPasswordForm = document.getElementById('loginEmailPasswordForm');
             const loginGoogleBtn = document.getElementById('loginGoogleBtn');
-
-            const signupNameInput = document.getElementById('signupName');
-            const signupEmailInput = document.getElementById('signupEmail');
-            const signupPasswordInput = document.getElementById('signupPassword');
-            const confirmPasswordInput = document.getElementById('confirmPassword');
-            const agreeTermsCheckbox = document.getElementById('agreeTerms');
             const signupEmailPasswordForm = document.getElementById('signupEmailPasswordForm');
             const signupGoogleBtn = document.getElementById('signupGoogleBtn');
+
+            // --- Core function to handle successful authentication ---
+            async function handleAuthSuccess(user) {
+                if (!user) return;
+                try {
+                    const token = await user.getIdToken(true);
+                    // Send token to backend to create a session
+                    const response = await fetch('/verify-token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token: token }),
+                    });
+
+                    if (response.ok) {
+                        console.log('Server session created.');
+                        // Redirect to the main application page
+                        window.location.href = '/main';
+                    } else {
+                        throw new Error('Server token verification failed.');
+                    }
+                } catch (error) {
+                    console.error('Authentication process failed:', error);
+                    alert(`An error occurred during authentication: ${error.message}`);
+                    auth.signOut(); // Sign out if server verification fails
+                }
+            }
 
 
             // Handle Email/Password Login
             loginEmailPasswordForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const email = loginEmailInput.value;
-                const password = loginPasswordInput.value;
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
                 const submitBtn = loginEmailPasswordForm.querySelector('.btn-primary');
                 setLoadingState(submitBtn, true, 'Signing In...');
 
                 try {
-                    await auth.signInWithEmailAndPassword(email, password);
-                    alert('Logged in successfully!');
-                    // Redirect or update UI upon successful login
-                    console.log("User logged in:", auth.currentUser);
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    await handleAuthSuccess(userCredential.user);
                 } catch (error) {
                     console.error("Login Error:", error);
                     alert(`Login failed: ${error.message}`);
@@ -694,10 +709,11 @@
             // Handle Email/Password Signup
             signupEmailPasswordForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const name = signupNameInput.value; // You might store this in Firestore or Realtime DB
-                const email = signupEmailInput.value;
-                const password = signupPasswordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
+                const name = document.getElementById('signupName').value;
+                const email = document.getElementById('signupEmail').value;
+                const password = document.getElementById('signupPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const agreeTermsCheckbox = document.getElementById('agreeTerms');
                 const submitBtn = signupEmailPasswordForm.querySelector('.btn-primary');
 
                 if (password !== confirmPassword) {
@@ -713,13 +729,8 @@
 
                 try {
                     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    // Update user profile with display name
-                    await userCredential.user.updateProfile({
-                        displayName: name
-                    });
-                    alert('Account created successfully!');
-                    // Redirect or update UI upon successful signup
-                    console.log("User signed up:", auth.currentUser);
+                    await userCredential.user.updateProfile({ displayName: name });
+                    await handleAuthSuccess(userCredential.user);
                 } catch (error) {
                     console.error("Signup Error:", error);
                     alert(`Signup failed: ${error.message}`);
@@ -728,62 +739,38 @@
                 }
             });
 
-            // Handle Google Login
-            loginGoogleBtn.addEventListener('click', async function() {
-                const submitBtn = loginGoogleBtn; // Or a dedicated Google button element
-                setLoadingState(submitBtn, true, 'Continuing with Google...');
+            // Handle Google Login/Signup
+            const handleGoogleAuth = async (button) => {
+                setLoadingState(button, true, 'Continuing with Google...');
                 try {
-                    await auth.signInWithPopup(googleProvider);
-                    alert('Logged in with Google successfully!');
-                    console.log("User logged in with Google:", auth.currentUser);
+                    const userCredential = await auth.signInWithPopup(googleProvider);
+                    await handleAuthSuccess(userCredential.user);
                 } catch (error) {
-                    console.error("Google Login Error:", error);
-                    alert(`Google login failed: ${error.message}`);
+                    console.error("Google Auth Error:", error);
+                    alert(`Google authentication failed: ${error.message}`);
                 } finally {
-                    setLoadingState(submitBtn, false, 'Continue with Google');
+                    setLoadingState(button, false, 'Continue with Google');
                 }
-            });
+            };
 
-            // Handle Google Signup (can use the same function as login for simplicity in Firebase)
-            signupGoogleBtn.addEventListener('click', async function() {
-                const submitBtn = signupGoogleBtn; // Or a dedicated Google button element
-                setLoadingState(submitBtn, true, 'Continuing with Google...');
-                try {
-                    await auth.signInWithPopup(googleProvider);
-                    alert('Signed up with Google successfully!');
-                    console.log("User signed up with Google:", auth.currentUser);
-                } catch (error) {
-                    console.error("Google Signup Error:", error);
-                    alert(`Google signup failed: ${error.message}`);
-                } finally {
-                    setLoadingState(submitBtn, false, 'Continue with Google');
-                }
-            });
+            loginGoogleBtn.addEventListener('click', () => handleGoogleAuth(loginGoogleBtn));
+            signupGoogleBtn.addEventListener('click', () => handleGoogleAuth(signupGoogleBtn));
 
 
             // Function to manage button loading state
             function setLoadingState(button, isLoading, loadingText) {
                 const originalText = button.dataset.originalText || button.textContent;
                 if (isLoading) {
-                    button.dataset.originalText = originalText;
+                    if (!button.dataset.originalText) {
+                       button.dataset.originalText = originalText;
+                    }
                     button.textContent = loadingText;
                     button.disabled = true;
                 } else {
-                    button.textContent = originalText;
+                    button.textContent = button.dataset.originalText;
                     button.disabled = false;
                 }
             }
-
-            // Optional: Listen for authentication state changes (useful for redirecting users)
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    console.log("User is signed in:", user);
-                    // You might want to redirect to a dashboard page here
-                    // window.location.href = '/dashboard.html';
-                } else {
-                    console.log("No user is signed in.");
-                }
-            });
         });
     </script>
 </body>
