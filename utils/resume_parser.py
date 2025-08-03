@@ -2,7 +2,6 @@ import re
 import spacy
 from spacy.matcher import Matcher, PhraseMatcher
 import logging
-# The leading dot tells Python to look for text_extraction in the SAME folder (utils).
 from .text_extraction import clean_resume_text
 
 logger = logging.getLogger(__name__)
@@ -14,7 +13,6 @@ except Exception as e:
     logger.error(f"Failed to load spaCy model: {str(e)}. Please run 'python -m spacy download en_core_web_sm'")
     raise
 
-# Skill Definitions (Copied from your original code)
 SOFT_SKILLS = {
     "communication", "teamwork", "leadership", "problem-solving", "adaptability",
     "time management", "collaboration", "creativity", "work ethic", "interpersonal skills",
@@ -36,7 +34,6 @@ TECHNICAL_SKILLS = {
     "next.js", "react.js", "generative ai", "tkinter", "socket.io", "num py", "scikit learn"
 }
 
-# The full, correct parse_resume function
 def parse_resume(resume_text):
     logger.debug("--- Starting parse_resume ---")
     resume_text = clean_resume_text(resume_text)
