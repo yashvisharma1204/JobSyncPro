@@ -308,7 +308,7 @@ def results():
                     "resume_text": resume_text
                 })
             except Exception as exc:
-                 logger.error(f'{original_file.filename} generated an exception: {exc}')
+                logger.error(f'{original_file.filename} generated an exception: {exc}')
 
 
     if not processed_results or all(res["percentage_gemini"] == 0.0 and not res["resume_text"].strip() for res in processed_results):
@@ -329,7 +329,8 @@ def results():
             "score": round(combined_score, 2),
             "skills": res["parsed_resume"]["skills"],
             "soft_skills": res["parsed_resume"]["soft_skills"],
-            "recommendation_data": res["recommendation_data"]
+            "recommendation_data": res["recommendation_data"],
+            "resume_text": res["resume_text"]  # <-- MODIFICATION: Pass resume text
         })
     
     top_resumes = sorted(final_resumes_for_display, key=lambda x: x['score'], reverse=True)[:5]

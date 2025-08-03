@@ -735,9 +735,9 @@
             </ul>
             <div class="auth-buttons">
                 {% if session.user_email %}
-        <span class="user-email" style="color: #cbd5e1; padding-right: 1rem;">{{ session.user_email }}</span>
-        <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
-    {% endif %}
+                <span class="user-email" style="color: #cbd5e1; padding-right: 1rem;">{{ session.user_email }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -804,14 +804,21 @@
         <div class="sidebar-controls">
             <a href="{{ url_for('home_page') }}" class="sidebar-btn back">
                 <i class="fas fa-arrow-left"></i>
-                 Back to Matcher
-        </a>
-                            <button id="prepareInterviewBtn" class="sidebar-btn back" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);">
-                <i class="fas fa-microphone"></i> Prepare for Interview
-            </button>
-         </div>
-        </div>
-    </div>
+                Back to Matcher
+            </a>
+            
+            {% if top_resumes %}
+            <form action="{{ url_for('prep.start_interview') }}" method="POST">
+                <textarea name="job_description" style="display:none;">{{ job_description }}</textarea>
+                <textarea name="resume_text" style="display:none;">{{ top_resumes[0].resume_text }}</textarea>
+                
+                <button type="submit" id="prepareInterviewBtn" class="sidebar-btn back" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); width: 100%;">
+                    <i class="fas fa-microphone"></i> Prepare for Interview
+                </button>
+            </form>
+            {% endif %}
+       </div>
+       </div>
 
     <div class="main-content">
         <div class="results-header">
