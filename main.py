@@ -11,7 +11,6 @@ import logging
 import firebase_admin
 from firebase_admin import credentials, auth
 
-# Import functions from your utility modules
 from utils.text_extraction import extract_text
 from utils.resume_parser import parse_resume
 from utils.gemini_api import get_gemini_response
@@ -25,10 +24,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'Uploads/'
 app.config['CACHE_FOLDER'] = 'Cache/'
 
-# --- CHANGE 1: Set a permanent secret key ---
-# Using os.urandom() creates a new key on every restart, which invalidates all sessions.
-# This permanent key ensures sessions persist across restarts.
-# For production, it's best to load this from an environment variable.
+
 app.config['SECRET_KEY'] = 'a-very-long-and-super-secret-random-string-for-your-app'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
@@ -44,7 +40,6 @@ except Exception as e:
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# --- Login Required Decorator ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -141,7 +136,7 @@ def process_resume(resume_file, job_description, input_prompt):
         except OSError as e:
             logger.error(f"Error removing file {filename_for_processing}: {e}")
 
-# --- Internal Helper Class for New Workflow ---
+
 class MockFileStorage:
     """A helper class to mimic a Flask FileStorage object from a file path."""
     def __init__(self, filepath):
@@ -156,7 +151,6 @@ class MockFileStorage:
             logger.error(f"MockFileStorage could not copy {self.filepath} to {dst}: {e}")
             raise
 
-# --- Flask Routes ---
 @app.route("/")
 def index():
     return render_template('main.html')
@@ -182,11 +176,10 @@ def logout():
 
 @app.route('/verify-token', methods=['POST'])
 def verify_token():
-    # --- CHANGE 2: Updated to handle the 'remember' flag ---
     try:
         data = request.get_json()
         token = data.get('token')
-        remember_me = data.get('remember', False) # Get the 'remember' flag, default to False
+        remember_me = data.get('remember', False) 
 
         if not token:
             return jsonify({'status': 'error', 'message': 'Token is missing'}), 400
@@ -194,10 +187,7 @@ def verify_token():
         decoded_token = auth.verify_id_token(token)
         session['user_uid'] = decoded_token['uid']
         session['user_email'] = decoded_token.get('email', 'N/A')
-        
-        # This is the key for the remember me functionality.
-        # If true, the session cookie will last for 1 day (set in app.config).
-        # If false, it will expire when the browser is closed.
+
         if remember_me:
             session.permanent = True
         
@@ -251,8 +241,7 @@ def results():
     resume_files = [MockFileStorage(os.path.join(job_upload_path, fname)) for fname in resume_filenames]
 
     logger.info(f"Processing job {job_id} retrieved from session with {len(resume_files)} resumes.")
-    
-    # This is your new, combined prompt
+
     input_prompt = """
     You are a skilled ATS (Applicant Tracking System) scanner and career coach with a deep understanding of data science, resume best practices, and ATS functionality.
     Evaluate the resume against the provided job description. Your goal is to provide a highly accurate and granular percentage match,
@@ -359,7 +348,6 @@ def results():
 
 
 if __name__ == '__main__':
-    # Create necessary folders if they don't exist
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     if not os.path.exists(app.config['CACHE_FOLDER']):
