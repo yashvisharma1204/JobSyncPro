@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Preparation - JobSyncPro</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background: #1e293b;
+            width: 100%;
+            max-width: 800px;
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .question-block {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .question-block.active {
+            display: block;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 0.5rem;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #334155;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 8px;
+            width: 10%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            transition: width 0.4s ease;
+        }
+        .question-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #e2e8f0;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .button-container {
+            text-align: right;
+            margin-top: 1.5rem;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        button#submitBtn {
+            background: linear-gradient(90deg, #10b981, #22c55e);
+        }
+        button#submitBtn:hover {
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interview Practice</h1>
+        <div class="progress-bar">
+            <div class="progress-bar-inner" id="progressBar"></div>
+        </div>
+
+        <form id="interviewForm" method="POST" action="{{ url_for('prep.get_interview_results') }}">
+            {% for question in questions %}
+            <div class="question-block {% if loop.first %}active{% endif %}" id="question-{{ loop.index0 }}">
+                <div class="question-header">Question {{ loop.index }} of {{ loop.length }}</div>
+                <p class="question-text">{{ question }}</p>
+                <textarea name="answer_{{ loop.index0 }}" placeholder="Type your answer here..." required></textarea>
+            </div>
+            {% endfor %}
+            <div class="button-container">
+                <button type="button" id="nextBtn">Next Question</button>
+                <button type="submit" id="submitBtn" style="display: none;">Finish & Get Results</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Use 'tojson' to safely pass the questions array from Flask to JavaScript
+        const questions = JSON.parse('{{ questions | tojson | safe }}');
+        
+        let currentQuestion = 0;
+        const totalQuestions = questions.length;
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressBar = document.getElementById('progressBar');
+
+        // Set initial progress
+        progressBar.style.width = `${(1 / totalQuestions) * 100}%`;
+
+        nextBtn.addEventListener('click', () => {
+            const currentBlock = document.getElementById(`question-${currentQuestion}`);
+            const nextBlock = document.getElementById(`question-${currentQuestion + 1}`);
+
+            if (nextBlock) {
+                currentBlock.classList.remove('active');
+                nextBlock.classList.add('active');
+                currentQuestion++;
+
+                // Update progress bar
+                progressBar.style.width = `${((currentQuestion + 1) / totalQuestions) * 100}%`;
+            }
+
+            // Check if it's the last question
+            if (currentQuestion === totalQuestions - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+            }
+        });
+    </script>
+</body>
+</html>

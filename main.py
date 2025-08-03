@@ -7,6 +7,8 @@ import shutil
 from functools import wraps
 from datetime import timedelta
 import logging
+from prep import prep_bp
+from flask_session import Session
 
 import firebase_admin
 from firebase_admin import credentials, auth
@@ -27,6 +29,9 @@ app.config['CACHE_FOLDER'] = 'Cache/'
 
 app.config['SECRET_KEY'] = 'a-very-long-and-super-secret-random-string-for-your-app'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 try:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -346,7 +351,7 @@ def results():
         top_resumes=top_resumes
     )
 
-
+app.register_blueprint(prep_bp)
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interview Results</title>
+    <style>
+        /* Add your own styling */
+        body { font-family: sans-serif; background-color: #f4f7f6; padding: 40px; }
+        .container { max-width: 900px; margin: auto; }
+        .header { background: #007bff; color: white; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; }
+        .header h2 { margin: 10px 0 0; font-weight: 300; }
+        .evaluation-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .evaluation-card h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .label { font-weight: bold; color: #333; }
+        .user-answer { background: #e9ecef; padding: 10px; border-radius: 4px; margin: 10px 0; font-style: italic; }
+        .feedback { color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Interview Results</h1>
+            <h2>Overall Score: {{ results.overall_score }}/10</h2>
+            <p>{{ results.overall_feedback }}</p>
+        </div>
+
+        {% for eval in results.answer_evaluations %}
+        <div class="evaluation-card">
+            <h3>Question {{ loop.index }}: Score {{ eval.score }}/10</h3>
+            <p><span class="label">Question:</span> {{ eval.question }}</p>
+            <p class="label">Your Answer:</p>
+            <div class="user-answer">"{{ eval.answer }}"</div>
+            <p><span class="label">Feedback:</span></p>
+            <p class="feedback">{{ eval.feedback }}</p>
+        </div>
+        {% endfor %}
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{ url_for('home_page') }}" style="padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px;">Start New Analysis</a>
+        </div>
+    </div>
+</body>
+</html>
