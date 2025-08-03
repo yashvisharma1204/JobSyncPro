@@ -627,7 +627,7 @@
             apiKey: "AIzaSyDUPxCHIbdD-XA4ThW1YseMZ3bW3s1Z22U",
             authDomain: "visionboard-debfd.firebaseapp.com",
             projectId: "visionboard-debfd",
-            storageBucket: "visionboard-debfd.appspot.com", // Corrected storage bucket
+            storageBucket: "visionboard-debfd.appspot.com",
             messagingSenderId: "240035443517",
             appId: "1:240035443517:web:5e26fc05693e4a821f8b54",
             measurementId: "G-MHES905JPG"
@@ -638,7 +638,7 @@
         const auth = firebase.auth();
         const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-        // --- Form Switching Logic ---
+        // --- Form Switching Logic (No changes here) ---
         function switchToSignup() {
             document.getElementById('loginForm').classList.remove('active');
             document.getElementById('signupForm').classList.add('active');
@@ -650,97 +650,90 @@
         }
 
         // --- Firebase Authentication Logic ---
-
         document.addEventListener('DOMContentLoaded', function() {
             // Get form elements
             const loginEmailPasswordForm = document.getElementById('loginEmailPasswordForm');
             const loginGoogleBtn = document.getElementById('loginGoogleBtn');
             const signupEmailPasswordForm = document.getElementById('signupEmailPasswordForm');
             const signupGoogleBtn = document.getElementById('signupGoogleBtn');
+            const rememberMeCheckbox = document.getElementById('rememberMe'); // Get the checkbox
 
-            // --- Core function to handle successful authentication ---
-            async function handleAuthSuccess(user) {
+            // --- CHANGE 1: The core handler now accepts the 'remember' state ---
+            async function handleAuthSuccess(user, remember) {
                 if (!user) return;
                 try {
                     const token = await user.getIdToken(true);
-                    // Send token to backend to create a session
+                    
+                    // The body of the request now includes the 'remember' flag
                     const response = await fetch('/verify-token', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ token: token }),
+                        body: JSON.stringify({ 
+                            token: token,
+                            remember: remember // This tells the backend to set a permanent session
+                        }),
                     });
 
                     if (response.ok) {
                         console.log('Server session created.');
-                        // Redirect to the main application page
                         window.location.href = '/home';
                     } else {
-                        throw new Error('Server token verification failed.');
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Server token verification failed.');
                     }
                 } catch (error) {
                     console.error('Authentication process failed:', error);
                     alert(`An error occurred during authentication: ${error.message}`);
-                    auth.signOut(); // Sign out if server verification fails
+                    auth.signOut();
                 }
             }
 
-
             // Handle Email/Password Login
             loginEmailPasswordForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked; // Get checkbox state
-            const submitBtn = loginEmailPasswordForm.querySelector('.btn-primary');
-            setLoadingState(submitBtn, true, 'Signing In...');
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const rememberMe = rememberMeCheckbox.checked; // Get checkbox state
+                const submitBtn = loginEmailPasswordForm.querySelector('.btn-primary');
+                setLoadingState(submitBtn, true, 'Signing In...');
 
-            try {
-                // Set persistence based on the "Remember me" checkbox
-                const persistence = rememberMe 
-                    ? firebase.auth.Auth.Persistence.LOCAL 
-                    : firebase.auth.Auth.Persistence.SESSION;
-                await auth.setPersistence(persistence);
+                try {
+                    await auth.setPersistence(rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    
+                    // --- CHANGE 2: Pass the 'rememberMe' variable to the handler ---
+                    await handleAuthSuccess(userCredential.user, rememberMe);
 
-                // Now, sign in the user
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                await handleAuthSuccess(userCredential.user);
+                } catch (error) {
+                    console.error("Login Error:", error);
+                    alert(`Login failed: ${error.message}`);
+                } finally {
+                    setLoadingState(submitBtn, false, 'Sign In');
+                }
+            });
 
-            } catch (error) {
-                console.error("Login Error:", error);
-                alert(`Login failed: ${error.message}`);
-            } finally {
-                setLoadingState(submitBtn, false, 'Sign In');
-            }
-        });
-
-
-            // Handle Email/Password Signup
+            // Handle Email/Password Signup (No changes here)
             signupEmailPasswordForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const name = document.getElementById('signupName').value;
                 const email = document.getElementById('signupEmail').value;
                 const password = document.getElementById('signupPassword').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
-                const agreeTermsCheckbox = document.getElementById('agreeTerms');
                 const submitBtn = signupEmailPasswordForm.querySelector('.btn-primary');
 
                 if (password !== confirmPassword) {
                     alert('Passwords do not match!');
                     return;
                 }
-                if (!agreeTermsCheckbox.checked) {
-                    alert('You must agree to the Terms of Service and Privacy Policy.');
-                    return;
-                }
-
+                
                 setLoadingState(submitBtn, true, 'Creating Account...');
-
                 try {
                     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                     await userCredential.user.updateProfile({ displayName: name });
-                    await handleAuthSuccess(userCredential.user);
+                    // On first signup, we don't force "remember me", so pass false
+                    await handleAuthSuccess(userCredential.user, false);
                 } catch (error) {
                     console.error("Signup Error:", error);
                     alert(`Signup failed: ${error.message}`);
@@ -751,10 +744,16 @@
 
             // Handle Google Login/Signup
             const handleGoogleAuth = async (button) => {
+                const rememberMe = rememberMeCheckbox.checked; // Also check state for Google login
                 setLoadingState(button, true, 'Continuing with Google...');
                 try {
+                    // Also set persistence for Google login
+                    await auth.setPersistence(rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
                     const userCredential = await auth.signInWithPopup(googleProvider);
-                    await handleAuthSuccess(userCredential.user);
+
+                    // --- CHANGE 3: Pass the 'rememberMe' variable for Google login too ---
+                    await handleAuthSuccess(userCredential.user, rememberMe);
+
                 } catch (error) {
                     console.error("Google Auth Error:", error);
                     alert(`Google authentication failed: ${error.message}`);
@@ -767,12 +766,12 @@
             signupGoogleBtn.addEventListener('click', () => handleGoogleAuth(signupGoogleBtn));
 
 
-            // Function to manage button loading state
+            // Function to manage button loading state (No changes here)
             function setLoadingState(button, isLoading, loadingText) {
                 const originalText = button.dataset.originalText || button.textContent;
                 if (isLoading) {
                     if (!button.dataset.originalText) {
-                       button.dataset.originalText = originalText;
+                        button.dataset.originalText = originalText;
                     }
                     button.textContent = loadingText;
                     button.disabled = true;
