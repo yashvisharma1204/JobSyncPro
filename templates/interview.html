@@ -109,6 +109,15 @@
         button#submitBtn:hover {
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
+        .error-message {
+            color: #f87171;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -122,12 +131,16 @@
             <div class="progress-bar-inner" id="progressBar"></div>
         </div>
 
+        {% if message %}
+            <div class="error-message">{{ message }}</div>
+        {% endif %}
+
         <form id="interviewForm" method="POST" action="{{ url_for('prep.get_interview_results') }}">
             {% for question in questions %}
             <div class="question-block {% if loop.first %}active{% endif %}" id="question-{{ loop.index0 }}">
                 <div class="question-header">Question {{ loop.index }} of {{ loop.length }}</div>
                 <p class="question-text">{{ question }}</p>
-                <textarea name="answer_{{ loop.index0 }}" placeholder="Type your answer here..." required></textarea>
+                <textarea name="answer_{{ loop.index0 }}" placeholder="Type your answer here... or leave blank to skip."></textarea>
             </div>
             {% endfor %}
             <div class="button-container">
@@ -138,7 +151,6 @@
     </div>
 
     <script>
-        // Use 'tojson' to safely pass the questions array from Flask to JavaScript
         const questions = JSON.parse('{{ questions | tojson | safe }}');
         
         let currentQuestion = 0;
@@ -158,12 +170,8 @@
                 currentBlock.classList.remove('active');
                 nextBlock.classList.add('active');
                 currentQuestion++;
-
-                // Update progress bar
                 progressBar.style.width = `${((currentQuestion + 1) / totalQuestions) * 100}%`;
             }
-
-            // Check if it's the last question
             if (currentQuestion === totalQuestions - 1) {
                 nextBtn.style.display = 'none';
                 submitBtn.style.display = 'inline-block';
