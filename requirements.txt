@@ -20,4 +20,5 @@ reportlab
 PyPDF2
 docx2txt
 spacy
+Flask-session
 -e .
