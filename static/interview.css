@@ -1,0 +1,208 @@
+ * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #f8fafc;
+            background: #0f172a;
+            font-size: 16px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* 2. Animated Background Decorations */
+        .bg-decoration {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-decoration::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .bg-decoration:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+        .bg-decoration:nth-child(2) { top: 60%; right: 10%; animation-delay: -3s; }
+        .bg-decoration:nth-child(3) { bottom: 20%; left: 20%; animation-delay: -6s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(5deg); }
+        }
+        
+        /* 3. Navbar Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { text-decoration: none; color: #cbd5e1; font-weight: 500; transition: color 0.3s ease; }
+        .nav-links a:hover { color: #60a5fa; }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        /* 4. Results Page Specific Styles */
+        .results-section {
+            padding: 120px 0 60px; /* Padding to clear fixed navbar and provide space */
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .results-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #e9eaea 0%, #93c5fd 50%, #c4b5fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .results-header h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+        }
+        
+        .results-header p {
+            max-width: 700px;
+            margin: 0 auto;
+            color: #94a3b8;
+        }
+        
+        .evaluation-card {
+            background: rgba(30, 41, 59, 0.7); /* Slightly darker card */
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .evaluation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .evaluation-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .label {
+            font-weight: 600;
+            color: #93c5fd; /* Light blue for labels */
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .question-text {
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+
+        .user-answer {
+            background: #0f172a; /* Deep background for contrast */
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-style: italic;
+            color: #e2e8f0;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .feedback {
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+        
+        .new-analysis-btn-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        /* 5. Footer Styles */
+        .footer {
+            background: #0f172a;
+            border-top: 1px solid rgba(30, 41, 59, 0.5);
+            padding: 2rem 0;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .footer p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }

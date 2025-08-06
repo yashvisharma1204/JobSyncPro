@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interview Preparation - JobSyncPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -58,18 +59,26 @@
             font-weight: 600;
             color: #94a3b8;
             margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .question-text {
             font-size: 1.25rem;
             font-weight: 500;
             color: #e2e8f0;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem; /* Adjusted margin */
             line-height: 1.6;
+        }
+        .answer-container {
+            position: relative;
         }
         textarea {
             width: 100%;
             min-height: 150px;
             padding: 1rem;
+            /* Make space for the mic button */
+            padding-right: 60px;
             font-size: 1rem;
             border-radius: 8px;
             border: 1px solid #475569;
@@ -85,8 +94,11 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
         .button-container {
-            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
             margin-top: 1.5rem;
+            gap: 0.5rem;
         }
         button {
             padding: 0.75rem 1.5rem;
@@ -97,11 +109,15 @@
             cursor: pointer;
             font-size: 1rem;
             font-weight: 500;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
         }
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         button#submitBtn {
             background: linear-gradient(90deg, #10b981, #22c55e);
@@ -118,9 +134,49 @@
             margin-bottom: 1.5rem;
             text-align: center;
         }
+        .speak-btn {
+            background: none; border: none; color: #94a3b8; cursor: pointer;
+            font-size: 1.2rem; padding: 0.25rem; line-height: 1;
+        }
+        .speak-btn:hover {
+            color: #e2e8f0; background: none; transform: scale(1.1); box-shadow: none;
+        }
+        .mic-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: #334155;
+            color: #e2e8f0;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .mic-btn.is-recording {
+            background: #ef4444; /* Red color when recording */
+            animation: pulse 1.5s infinite;
+        }
+        .mic-status {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            height: 1.2em; /* Reserve space to prevent layout shift */
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        /* MODIFICATION: Animation for the recording button */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
     </style>
 </head>
@@ -138,9 +194,20 @@
         <form id="interviewForm" method="POST" action="{{ url_for('prep.get_interview_results') }}">
             {% for question in questions %}
             <div class="question-block {% if loop.first %}active{% endif %}" id="question-{{ loop.index0 }}">
-                <div class="question-header">Question {{ loop.index }} of {{ loop.length }}</div>
+                <div class="question-header">
+                    <span>Question {{ loop.index }} of {{ loop.length }}</span>
+                    <button type="button" class="speak-btn" data-question-index="{{ loop.index0 }}" title="Read question aloud">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
                 <p class="question-text">{{ question }}</p>
-                <textarea name="answer_{{ loop.index0 }}" placeholder="Type your answer here... or leave blank to skip."></textarea>
+                <div class="answer-container">
+                    <textarea name="answer_{{ loop.index0 }}" placeholder="Type your answer here, or click the mic to speak."></textarea>
+                    <button type="button" class="mic-btn" data-target-textarea="answer_{{ loop.index0 }}" title="Transcribe voice to text">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                <div class="mic-status" id="mic-status-{{ loop.index0 }}">Click the mic to start speaking</div>
             </div>
             {% endfor %}
             <div class="button-container">
@@ -151,31 +218,147 @@
     </div>
 
     <script>
-        const questions = JSON.parse('{{ questions | tojson | safe }}');
-        
-        let currentQuestion = 0;
-        const totalQuestions = questions.length;
-        const nextBtn = document.getElementById('nextBtn');
-        const submitBtn = document.getElementById('submitBtn');
-        const progressBar = document.getElementById('progressBar');
-
-        // Set initial progress
-        progressBar.style.width = `${(1 / totalQuestions) * 100}%`;
-
-        nextBtn.addEventListener('click', () => {
-            const currentBlock = document.getElementById(`question-${currentQuestion}`);
-            const nextBlock = document.getElementById(`question-${currentQuestion + 1}`);
-
-            if (nextBlock) {
-                currentBlock.classList.remove('active');
-                nextBlock.classList.add('active');
-                currentQuestion++;
-                progressBar.style.width = `${((currentQuestion + 1) / totalQuestions) * 100}%`;
+        document.addEventListener('DOMContentLoaded', () => {
+            const questions = JSON.parse('{{ questions | tojson | safe }}');
+            let currentQuestion = 0;
+            const totalQuestions = questions.length;
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const progressBar = document.getElementById('progressBar');
+            const questionBlocks = document.querySelectorAll('.question-block');
+            const speakButtons = document.querySelectorAll('.speak-btn');
+            
+            const synth = window.speechSynthesis;
+            function speakQuestion(index) {
+                if (synth.speaking) synth.cancel();
+                const utterance = new SpeechSynthesisUtterance(questions[index]);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                synth.speak(utterance);
             }
-            if (currentQuestion === totalQuestions - 1) {
-                nextBtn.style.display = 'none';
-                submitBtn.style.display = 'inline-block';
+
+            // --- Speech-to-Text (Voice Recognition) Setup ---
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition;
+            let isRecording = false;
+            let activeMicBtn = null;
+            let initialText = '';
+            let sessionTranscript = ''; 
+
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                // You can change this to 'en-GB' for British English, 'en-IN' for Indian English, etc.
+                recognition.lang = 'en-US'; 
+                recognition.maxAlternatives = 1; // We only need the most likely transcription
+
+                recognition.onresult = (event) => {
+                    let interim_transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            sessionTranscript += event.results[i][0].transcript + ' ';
+                        } else {
+                            interim_transcript += event.results[i][0].transcript;
+                        }
+                    }
+                    const targetTextarea = document.querySelector(`textarea[name="${activeMicBtn.dataset.targetTextarea}"]`);
+                    targetTextarea.value = initialText + sessionTranscript + interim_transcript;
+                };
+
+                // --- MODIFICATION: Improved status and error handling ---
+                recognition.onstart = () => {
+                    isRecording = true;
+                    activeMicBtn.classList.add('is-recording');
+                    const statusEl = document.getElementById(`mic-status-${currentQuestion}`);
+                    statusEl.textContent = "Listening...";
+                    statusEl.style.color = "#60a5fa"; // Blue for listening
+                };
+
+                recognition.onend = () => {
+                    isRecording = false;
+                    if (activeMicBtn) {
+                        activeMicBtn.classList.remove('is-recording');
+                    }
+                    const statusEl = document.getElementById(`mic-status-${currentQuestion}`);
+                    if(statusEl) {
+                        statusEl.textContent = "Click the mic to start speaking";
+                        statusEl.style.color = "#94a3b8"; // Reset color
+                    }
+                    activeMicBtn = null;
+                };
+                
+                recognition.onerror = (event) => {
+                    const statusEl = document.getElementById(`mic-status-${currentQuestion}`);
+                    if (statusEl) {
+                        // Provide more helpful error messages
+                        if (event.error === 'no-speech' || event.error === 'audio-capture') {
+                            statusEl.textContent = "Couldn't hear you. Please check your mic.";
+                        } else if (event.error === 'not-allowed') {
+                            statusEl.textContent = "Microphone access was denied.";
+                        } else {
+                             statusEl.textContent = "An error occurred. Please try again.";
+                        }
+                        statusEl.style.color = "#f87171"; // Red for error
+                    }
+                     console.error('Speech Recognition Error:', event.error);
+                };
+
+            } else {
+                console.log("Speech Recognition not supported in this browser.");
+                document.querySelectorAll('.mic-btn').forEach(btn => btn.style.display = 'none');
+                document.querySelectorAll('.mic-status').forEach(el => el.textContent = 'Voice input not supported in this browser.');
             }
+            
+            document.querySelectorAll('.mic-btn').forEach(micBtn => {
+                micBtn.addEventListener('click', () => {
+                    // Prevent starting if another mic is active
+                    if (isRecording && activeMicBtn !== micBtn) return;
+                    
+                    if (isRecording) {
+                        recognition.stop();
+                        const statusEl = document.getElementById(`mic-status-${currentQuestion}`);
+                        if (statusEl) statusEl.textContent = "Processing...";
+                    } else {
+                        activeMicBtn = micBtn;
+                        const targetTextarea = document.querySelector(`textarea[name="${micBtn.dataset.targetTextarea}"]`);
+                        initialText = targetTextarea.value ? targetTextarea.value.trim() + ' ' : '';
+                        sessionTranscript = '';
+                        recognition.start();
+                    }
+                });
+            });
+
+            // --- Navigation Logic ---
+            function showQuestion(index) {
+                if (isRecording) recognition.stop();
+
+                questionBlocks.forEach(block => block.classList.remove('active'));
+                const activeBlock = document.getElementById(`question-${index}`);
+                if (activeBlock) activeBlock.classList.add('active');
+
+                progressBar.style.width = `${((index + 1) / totalQuestions) * 100}%`;
+                nextBtn.style.display = (index === totalQuestions - 1) ? 'none' : 'inline-block';
+                submitBtn.style.display = (index === totalQuestions - 1) ? 'inline-block' : 'none';
+
+                speakQuestion(index);
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (currentQuestion < totalQuestions - 1) {
+                    currentQuestion++;
+                    showQuestion(currentQuestion);
+                }
+            });
+
+            speakButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const index = parseInt(e.currentTarget.dataset.questionIndex, 10);
+                    speakQuestion(index);
+                });
+            });
+
+            showQuestion(0);
         });
     </script>
 </body>
