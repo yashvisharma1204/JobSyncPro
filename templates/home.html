@@ -64,7 +64,7 @@
                 <h2><i class="fas fa-search"></i> AI-Powered Resume Matcher</h2>
             </div>
             <div class="card-body">
-                <form method="POST" action="/matcher" enctype="multipart/form-data">
+                <form id="mainForm" method="POST" action="/matcher" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="job_description" class="form-label">
                             <i class="fas fa-file-text"></i> Job Description
@@ -107,7 +107,7 @@
                     </div>
                     
                     <div class="form-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <button type="submit" class="btn-submit" style="flex: 1; min-width: 200px;">
+                        <button type="submit" id="matchBtn" class="btn-submit" style="flex: 1; min-width: 200px;">
                             <i class="fas fa-magic"></i> Match Resumes
                         </button>
                         
@@ -124,12 +124,15 @@
         <p>&copy; 2025 JobSyncPro. Advanced Resume Matching Platform.</p>
     </footer>
 
+    {% include 'partials/loader1.html' %}
+
     <script>
+        const mainForm = document.getElementById('mainForm');
         const resumeInput = document.getElementById('resumes');
         const fileInputLabel = document.querySelector('.file-input-label');
         const prepareButton = document.getElementById('prepareBtn');
+        const matchButton = document.getElementById('matchBtn'); 
 
-        // This event listener only updates the file count label
         resumeInput.addEventListener('change', function(e) {
             const fileCount = e.target.files.length;
             
@@ -146,29 +149,42 @@
             }
         });
 
-        // This listener handles the logic when the interview button is clicked
+        function showLoader(message) {
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const loaderText = document.getElementById('loader-text');
+            if (loaderOverlay && loaderText) {
+                loaderText.textContent = message;
+                loaderOverlay.style.display = 'flex';
+            }
+        }
+
         prepareButton.addEventListener('click', function(event) {
             const fileCount = resumeInput.files.length;
-
             if (fileCount !== 1) {
-                // 1. Prevent the form from submitting
                 event.preventDefault();
-
-                // 2. Show the attractive SweetAlert2 modal instead of the default alert
                 Swal.fire({
                     icon: 'warning',
                     title: 'Please Select One Resume',
                     html: "For the best results, please prepare for your interview with a single, optimized resume.<br><br>We recommend using the <strong>'Match Resumes'</strong> feature first to find your strongest option, then return here to start your interview preparation with that one file.",
                     confirmButtonText: 'Understood',
-                    background: '#1e293b', // Dark background to match your site
-                    color: '#e2e8f0',       // Light text color
-                    confirmButtonColor: '#4f46e5' // A purple for the button
+                    background: '#1e293b',
+                    color: '#e2e8f0',
+                    confirmButtonColor: '#4f46e5'
                 });
             }
-            // If fileCount is exactly 1, this function does nothing, and the form submits as normal.
         });
 
-        // Add smooth scrolling for navigation links
+        mainForm.addEventListener('submit', function(event) {
+            const submitter = event.submitter || document.activeElement;
+            if (submitter.id === 'prepareBtn') {
+                if (resumeInput.files.length === 1) {
+                    showLoader('Building your personalized interview session...');
+                }
+            } else if (submitter.id === 'matchBtn') {
+                showLoader('Analyzing resumes and matching with the job description...');
+            }
+        });
+
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -181,7 +197,6 @@
             });
         });
 
-        // Add navbar scroll effect
         window.addEventListener('scroll', function() {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {

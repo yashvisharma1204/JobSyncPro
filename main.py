@@ -9,7 +9,6 @@ from datetime import timedelta
 import logging
 from prep import prep_bp
 from flask_session import Session
-
 import firebase_admin
 from firebase_admin import credentials, auth
 
