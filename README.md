@@ -1,7 +1,7 @@
 <h1 align="center">🤖 JobSyncPro: Ai-Powered Recruitment Suite</h1>
 <p align="center"><i>Optimize Resumes, Simulate Interviews — Your AI-Powered Career Assistant</i></p>
 <p align="center">
-  <img src="https://img.shields.io/badge/status-in--progress-yellow" alt="Project Status Badge"/>
+  <img src="https://img.shields.io/badge/status-complete-green" alt="Project Status Badge"/>
 <!--   <img src="https://img.shields.io/badge/tech-stack-React%20%7C%20Next.js%20%7C%20Python-blue" alt="Tech Stack Badge"/> -->
   <img src="https://img.shields.io/badge/API-Gemini%20%7C%20GenAI-lightgrey" alt="API Badge"/>
 </p>

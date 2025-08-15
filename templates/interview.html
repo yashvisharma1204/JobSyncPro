@@ -67,7 +67,7 @@
             font-size: 1.25rem;
             font-weight: 500;
             color: #e2e8f0;
-            margin-bottom: 1rem; /* Adjusted margin */
+            margin-bottom: 1rem;
             line-height: 1.6;
         }
         .answer-container {
@@ -77,7 +77,6 @@
             width: 100%;
             min-height: 150px;
             padding: 1rem;
-            /* Make space for the mic button */
             padding-right: 60px;
             font-size: 1rem;
             border-radius: 8px;
@@ -159,20 +158,19 @@
             transition: all 0.3s ease;
         }
         .mic-btn.is-recording {
-            background: #ef4444; /* Red color when recording */
+            background: #ef4444;
             animation: pulse 1.5s infinite;
         }
         .mic-status {
             font-size: 0.9rem;
             color: #94a3b8;
             margin-top: 0.5rem;
-            height: 1.2em; /* Reserve space to prevent layout shift */
+            height: 1.2em;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* MODIFICATION: Animation for the recording button */
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
@@ -217,8 +215,25 @@
         </form>
     </div>
 
+    {% include 'partials/loader1.html' %}
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const interviewForm = document.getElementById('interviewForm');
+            
+            function showLoader(message) {
+                const loaderOverlay = document.getElementById('loader-overlay');
+                const loaderText = document.getElementById('loader-text');
+                if (loaderOverlay && loaderText) {
+                    loaderText.textContent = message;
+                    loaderOverlay.style.display = 'flex';
+                }
+            }
+
+            interviewForm.addEventListener('submit', function(event) {
+                showLoader('Evaluating your answers and generating feedback...');
+            });
+
             const questions = JSON.parse('{{ questions | tojson | safe }}');
             let currentQuestion = 0;
             const totalQuestions = questions.length;
@@ -237,7 +252,6 @@
                 synth.speak(utterance);
             }
 
-            // --- Speech-to-Text (Voice Recognition) Setup ---
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             let recognition;
             let isRecording = false;
@@ -249,9 +263,8 @@
                 recognition = new SpeechRecognition();
                 recognition.continuous = true;
                 recognition.interimResults = true;
-                // You can change this to 'en-GB' for British English, 'en-IN' for Indian English, etc.
                 recognition.lang = 'en-US'; 
-                recognition.maxAlternatives = 1; // We only need the most likely transcription
+                recognition.maxAlternatives = 1;
 
                 recognition.onresult = (event) => {
                     let interim_transcript = '';
@@ -266,13 +279,12 @@
                     targetTextarea.value = initialText + sessionTranscript + interim_transcript;
                 };
 
-                // --- MODIFICATION: Improved status and error handling ---
                 recognition.onstart = () => {
                     isRecording = true;
                     activeMicBtn.classList.add('is-recording');
                     const statusEl = document.getElementById(`mic-status-${currentQuestion}`);
                     statusEl.textContent = "Listening...";
-                    statusEl.style.color = "#60a5fa"; // Blue for listening
+                    statusEl.style.color = "#60a5fa";
                 };
 
                 recognition.onend = () => {
@@ -283,7 +295,7 @@
                     const statusEl = document.getElementById(`mic-status-${currentQuestion}`);
                     if(statusEl) {
                         statusEl.textContent = "Click the mic to start speaking";
-                        statusEl.style.color = "#94a3b8"; // Reset color
+                        statusEl.style.color = "#94a3b8";
                     }
                     activeMicBtn = null;
                 };
@@ -291,7 +303,6 @@
                 recognition.onerror = (event) => {
                     const statusEl = document.getElementById(`mic-status-${currentQuestion}`);
                     if (statusEl) {
-                        // Provide more helpful error messages
                         if (event.error === 'no-speech' || event.error === 'audio-capture') {
                             statusEl.textContent = "Couldn't hear you. Please check your mic.";
                         } else if (event.error === 'not-allowed') {
@@ -299,7 +310,7 @@
                         } else {
                              statusEl.textContent = "An error occurred. Please try again.";
                         }
-                        statusEl.style.color = "#f87171"; // Red for error
+                        statusEl.style.color = "#f87171";
                     }
                      console.error('Speech Recognition Error:', event.error);
                 };
@@ -312,7 +323,6 @@
             
             document.querySelectorAll('.mic-btn').forEach(micBtn => {
                 micBtn.addEventListener('click', () => {
-                    // Prevent starting if another mic is active
                     if (isRecording && activeMicBtn !== micBtn) return;
                     
                     if (isRecording) {
@@ -329,7 +339,6 @@
                 });
             });
 
-            // --- Navigation Logic ---
             function showQuestion(index) {
                 if (isRecording) recognition.stop();
 
