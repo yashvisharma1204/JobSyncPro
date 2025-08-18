@@ -4,14 +4,11 @@ services:
     env: python
     # Pinning the Python version is CRITICAL for compatibility
     python: "3.11"
-    plan: free # Keep on free plan for now
+    plan: free # We'll try the free plan again with this fix
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn main:app"
     healthCheckPath: /
     envVars:
-      # This is no longer needed as it's defined above
-      # - key: PYTHON_VERSION
-      #   value: 3.9.9 
       - key: GEMINI_API_KEY
         fromSecretFile: /etc/secrets/gemini_api_key
       - key: FIREBASE_SERVICE_ACCOUNT
