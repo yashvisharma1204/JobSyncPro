@@ -2,13 +2,16 @@ services:
   - type: web
     name: jobsyncpro
     env: python
-    plan: starter # 'starter' (paid) is recommended for memory. Use 'free' to start, but watch for memory issues.
+    # Pinning the Python version is CRITICAL for compatibility
+    python: "3.11"
+    plan: free # Keep on free plan for now
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn main:app"
     healthCheckPath: /
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.8
+      # This is no longer needed as it's defined above
+      # - key: PYTHON_VERSION
+      #   value: 3.9.9 
       - key: GEMINI_API_KEY
         fromSecretFile: /etc/secrets/gemini_api_key
       - key: FIREBASE_SERVICE_ACCOUNT
