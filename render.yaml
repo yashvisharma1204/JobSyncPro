@@ -2,9 +2,16 @@ services:
   - type: web
     name: jobsyncpro
     env: python
-    # Pinning the Python version is CRITICAL for compatibility
     python: "3.11"
-    plan: free # We'll try the free plan again with this fix
+    plan: starter # It's highly recommended to upgrade to Starter for memory
+    
+    # This new section installs system packages BEFORE pip runs
+    build:
+      apt:
+        - build-essential
+        - libpq-dev
+        - wkhtmltopdf
+
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn main:app"
     healthCheckPath: /
