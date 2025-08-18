@@ -2,16 +2,8 @@ services:
   - type: web
     name: jobsyncpro
     env: python
-    python: "3.11"
-    plan: starter # It's highly recommended to upgrade to Starter for memory
-    
-    # This new section installs system packages BEFORE pip runs
-    build:
-      apt:
-        - build-essential
-        - libpq-dev
-        - wkhtmltopdf
-
+    pythonVersion: 3.11   # ✅ correct field name
+    plan: free
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn main:app"
     healthCheckPath: /
