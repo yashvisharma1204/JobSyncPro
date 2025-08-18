@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: jobsyncpro
+    env: python
+    plan: starter # 'starter' (paid) is recommended for memory. Use 'free' to start, but watch for memory issues.
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn main:app"
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.9
+      - key: GEMINI_API_KEY
+        fromSecretFile: /etc/secrets/gemini_api_key
+      - key: FIREBASE_SERVICE_ACCOUNT
+        fromSecretFile: /etc/secrets/firebase_service_account
