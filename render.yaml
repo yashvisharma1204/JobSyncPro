@@ -1,13 +1,12 @@
 services:
-  - type: web
-    name: jobsyncpro
+  - type: web # Change this to 'worker' if it's a background worker
+    name: my-app # Feel free to change this name
     env: python
-    # Pinning the Python version is CRITICAL for compatibility
-    python: "3.11"
-    plan: free # Keep on free plan for now
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn main:app"
-    healthCheckPath: /
+    startCommand: "gunicorn main:app" # IMPORTANT: Change this to your app's start command
+    plan: free # Optional, you can remove this line
+    packages:
+      - name: build-essential
     envVars:
       # This is no longer needed as it's defined above
       # - key: PYTHON_VERSION
