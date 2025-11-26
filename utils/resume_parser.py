@@ -151,3 +151,5 @@ def parse_resume(resume_text):
     logger.debug(f"Parsed resume FINAL soft skills: {parsed_data['soft_skills']}")
     
     return parsed_data
+
+
